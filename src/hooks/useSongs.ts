@@ -1,6 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
-import { repo } from "../storage/localStorageRepo";
 import type { Song } from "../domain/types";
+import { repo } from "../storage/localStorageRepo";
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -36,5 +36,12 @@ export function useSongs() {
     repo.addSong(song);
     emit();
   }, []);
-  return { songs, addSong };
+  const updateSong = useCallback(
+    (id: string, updater: (prev: Song) => Song) => {
+      repo.updateSong(id, updater);
+      emit();
+    },
+    [],
+  );
+  return { songs, addSong, updateSong };
 }

@@ -33,5 +33,12 @@ export function useDice() {
     repo.addDie(die);
     emit();
   }, []);
-  return { dice, addDie };
+  const updateDie = useCallback(
+    (id: string, updater: (prev: DieDefinition) => DieDefinition) => {
+      repo.updateDie(id, updater);
+      emit();
+    },
+    [],
+  );
+  return { dice, addDie, updateDie };
 }

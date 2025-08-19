@@ -1,6 +1,6 @@
+import { useState } from "react";
 import { css } from "../../styled-system/css";
 import type { DieDefinition, RollResult } from "../domain/types";
-import { useState } from "react";
 
 interface RollHistoryProps {
   rolls: RollResult[];

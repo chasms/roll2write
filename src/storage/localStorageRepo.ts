@@ -46,11 +46,53 @@ function persistSongs(list: Song[]) {
   localStorage.setItem(SONGS_KEY, JSON.stringify(list));
 }
 
+// Central defaults for any missing DieDefinition fields (development convenience only)
+const DIE_DEFAULTS: DieDefinition = {
+  id: "__missing_id__",
+  name: "Elements",
+  sides: 4,
+  options: ["earth", "water", "fire", "earth"],
+  createdAt: new Date(0).toISOString(),
+  updatedAt: new Date(0).toISOString(),
+  colorHex: "#2aeaffff",
+  pattern: "solid",
+};
+
+let diceMigrated = false;
+function migrateDice(dice: Partial<DieDefinition>[]) {
+  let newDice: DieDefinition[] = [];
+
+  for (const die of dice) {
+    let newDie: DieDefinition = DIE_DEFAULTS;
+
+    newDie = { ...newDie, ...die };
+
+    newDice = [...newDice, newDie];
+  }
+  persistDice(newDice);
+}
 export const repo = {
-  getDice: () => [...loadDice()],
+  getDice: () => {
+    let dice = loadDice(); // stable reference unless mutated via addDie
+
+    if (!diceMigrated) {
+      migrateDice(dice);
+      diceMigrated = true;
+      dice = loadDice();
+    }
+
+    return dice;
+  },
   addDie: (die: DieDefinition) => {
     const list = loadDice();
     list.push(die);
+    persistDice(list);
+  },
+  updateDie: (id: string, updater: (prev: DieDefinition) => DieDefinition) => {
+    const list = loadDice();
+    const index = list.findIndex((d) => d.id === id);
+    if (index === -1) return;
+    list[index] = updater(list[index]);
     persistDice(list);
   },
   getRolls: () => [...loadRolls()],
@@ -63,6 +105,14 @@ export const repo = {
   addSong: (song: Song) => {
     const list = loadSongs();
     list.push(song);
+    persistSongs(list);
+  },
+  updateSong: (id: string, updater: (prev: Song) => Song) => {
+    const list = loadSongs();
+    const index = list.findIndex((s) => s.id === id);
+    if (index === -1) return;
+    const updated = updater(list[index]);
+    list[index] = { ...updated };
     persistSongs(list);
   },
 };

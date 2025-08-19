@@ -1,3 +1,10 @@
+export type DiePattern =
+  | "solid"
+  | "stripes"
+  | "dots"
+  | "gradient"
+  | "crosshatch";
+
 export interface DieDefinition {
   id: string;
   name: string; // unique, case-insensitive
@@ -5,6 +12,8 @@ export interface DieDefinition {
   options: string[]; // length === sides
   createdAt: string; // ISO
   updatedAt: string; // ISO
+  colorHex: string; // user-chosen hex color (#RRGGBB)
+  pattern: DiePattern; // visual pattern key
 }
 
 export interface RollResult {
@@ -32,3 +41,11 @@ export type ValidationResult<T> =
   | { ok: false; issues: ValidationIssue[] };
 
 export const DIE_SIDE_PRESETS = [4, 6, 8, 10, 12, 20, 100] as const;
+
+export const DIE_PATTERNS: DiePattern[] = [
+  "solid",
+  "stripes",
+  "dots",
+  "gradient",
+  "crosshatch",
+];

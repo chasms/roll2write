@@ -1,6 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
-import { repo } from "../storage/localStorageRepo";
 import type { RollResult } from "../domain/types";
+import { repo } from "../storage/localStorageRepo";
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
