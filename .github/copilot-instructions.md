@@ -20,3 +20,12 @@ This is a React TypeScript Vite PandaCSS project.
 - Use descriptive names for variables and functions, and avoid abbreviations and acronyms in variable, function, and type names; prefer fully spelled-out descriptive identifiers (e.g., `oscillatorNode` not `osc`, `outputGainNode` not `out`).
 - Try as much as possible to create types that can be shareable across the applications so that data flow can be connected and strongly typed
 - Separate business logic from UI rendering logic as much as possible. Where applicable, suggest state management solutions for business logic to pull it out of views.
+
+## Styling Conventions
+
+- Prefer static PandaCSS recipe / variant (cva/recipes) usage; avoid inline dynamic style objects with ternaries.
+- If a visual state changes (selected, active, disabled, rolling, etc.), express it through recipe variants or conditional className composition, not dynamic `css({ ... })` values.
+- All new components should define reusable variant recipes for interactive elements (buttons, list items, presets) instead of repeating style objects.
+- Keep runtime logic out of style definitions; pass booleans into variants rather than computing colors inline.
+- When using Panda `css` or `cva`, assign the resulting class to a clearly named constant (e.g., `diceListContainerClass`, `createSongButtonClass`) and pass that variable to `className` instead of inlining the call inside JSX. This improves readability and reusability.
+- Avoid abbreviated variable names in style code; prefer verbose descriptive names (`selectedDieButtonClass` not `selBtn`).

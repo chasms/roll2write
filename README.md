@@ -24,6 +24,12 @@ npm run dev
 npm run lint
 ```
 
+or to run autofix (this will happen automatically on save but sometimes it's still useful):
+
+```bash
+npm run lintfix
+```
+
 ##### Types
 
 ```bash
