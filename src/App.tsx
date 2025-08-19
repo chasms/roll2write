@@ -1,15 +1,9 @@
 import React from "react";
 import { v4 as uuid } from "uuid";
 import { css, cva } from "../styled-system/css";
-// Legacy components (retained but unused in new tabletop flow)
-// import { DiceForm } from "./components/DiceForm";
-// import { DiceList } from "./components/DiceList";
-// import { Roller } from "./components/Roller";
-// import { RollHistory } from "./components/RollHistory";
-// import { SongList } from "./components/SongList";
 import { Button } from "./components/Button";
-import { CreateDieModal } from "./components/CreateDieModal";
 import { DiceDrawer } from "./components/DiceDrawer";
+import { DiceFormModal } from "./components/DiceFormModal";
 import { PastRollsDrawer } from "./components/PastRollsDrawer";
 import type { RollResult, Song } from "./domain/types";
 import { useDice } from "./hooks/useDice";
@@ -278,7 +272,7 @@ function App() {
         </div>
       </div>
       {showCreateDie && (
-        <CreateDieModal
+        <DiceFormModal
           die={editingDie ?? undefined}
           existingNames={dice
             .filter((d) => d.id !== editingDie?.id)

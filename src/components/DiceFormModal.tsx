@@ -6,7 +6,7 @@ import { DIE_PATTERNS, DIE_SIDE_PRESETS } from "../domain/types";
 import { validateNewDie } from "../domain/validation";
 import { DieThumbnail } from "./DieThumbnail";
 
-interface CreateDieModalProps {
+interface DiceFormModalProps {
   existingNames: string[];
   onClose: () => void;
   onCreated?: (die: DieDefinition) => void;
@@ -14,13 +14,13 @@ interface CreateDieModalProps {
   die?: DieDefinition; // if provided, edit mode
 }
 
-export function CreateDieModal({
+export function DiceFormModal({
   existingNames,
   onClose,
   onCreated,
   onUpdated,
   die,
-}: CreateDieModalProps) {
+}: DiceFormModalProps) {
   const editMode = !!die;
   const [name, setName] = useState(die?.name ?? "");
   const [sides, setSides] = useState<number>(die?.sides ?? 6);
