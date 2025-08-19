@@ -1,5 +1,5 @@
+import type { DieDefinition, RollResult } from "../domain/types";
 import { BottomDrawer } from "./BottomDrawer";
-import type { RollResult, DieDefinition } from "../domain/types";
 import { DieThumbnail } from "./DieThumbnail";
 
 interface PastRollsDrawerProps {
@@ -15,7 +15,7 @@ export function PastRollsDrawer({
 }: PastRollsDrawerProps) {
   const recent = rolls.slice(0, 50);
   return (
-    <BottomDrawer title="Past Rolls" initialOpen={false}>
+    <BottomDrawer title="Past Rolls">
       {recent.map((r) => {
         const die = diceById[r.dieId];
         return (

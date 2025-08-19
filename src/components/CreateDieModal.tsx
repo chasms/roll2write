@@ -66,17 +66,24 @@ export function CreateDieModal({
   }
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    const validation = validateNewDie({
+
+    const newDie = {
       name,
       sides: effectiveSides,
       options,
-      existingNames,
-    });
+      colorHex,
+      pattern,
+    };
+
+    const validation = validateNewDie(newDie, existingNames);
+
     if (!validation.ok) {
       setErrors(validation.issues.map((i) => i.message));
       return;
     }
+
     const now = new Date().toISOString();
+
     if (die) {
       const updated: DieDefinition = {
         ...die,
