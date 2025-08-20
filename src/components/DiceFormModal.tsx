@@ -14,14 +14,36 @@ interface DiceFormModalProps {
   die?: DieDefinition; // if provided, edit mode
 }
 
-export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, die }: DiceFormModalProps) {
+function generateRandomHex() {
+  // Generate a random integer between 0 and 16777215 (FFFFFF in hex)
+  const randomNumber = Math.floor(Math.random() * 16777215);
+
+  // Convert the number to a hexadecimal string
+  let hexString = randomNumber.toString(16);
+
+  // Pad with leading zeros if necessary to ensure 6 characters
+  while (hexString.length < 6) {
+    hexString = "0" + hexString;
+  }
+
+  // Prepend '#' for a valid hex color code
+  return "#" + hexString;
+}
+
+export function DiceFormModal({
+  existingNames,
+  onClose,
+  onCreated,
+  onUpdated,
+  die,
+}: DiceFormModalProps) {
   const editMode = !!die;
   const [name, setName] = useState(die?.name ?? "");
   const [sides, setSides] = useState<number>(die?.sides ?? 6);
   const [customSides, setCustomSides] = useState<string>("");
   const effectiveSides = customSides ? Number(customSides) || 0 : sides;
   const [options, setOptions] = useState<string[]>(die ? [...die.options] : Array(6).fill(""));
-  const [colorHex, setColorHex] = useState(die?.colorHex ?? "#888888");
+  const [colorHex, setColorHex] = useState(die?.colorHex ?? generateRandomHex());
   const [pattern, setPattern] = useState<DiePattern>(die?.pattern ?? "solid");
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -145,7 +167,9 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
         })}
       >
         <div>
-          <h2 className={css({ fontSize: "2xl", mb: 4 })}>{editMode ? "Edit Die" : "Create Die"}</h2>
+          <h2 className={css({ fontSize: "2xl", mb: 4 })}>
+            {editMode ? "Edit Die" : "Create Die"}
+          </h2>
           <label className={css({ display: "block", mb: 2 })}>
             Name
             <input
