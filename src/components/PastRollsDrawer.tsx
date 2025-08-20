@@ -8,11 +8,7 @@ interface PastRollsDrawerProps {
   onSelectRoll: (roll: RollResult) => void;
 }
 
-export function PastRollsDrawer({
-  rolls,
-  diceById,
-  onSelectRoll,
-}: PastRollsDrawerProps) {
+export function PastRollsDrawer({ rolls, diceById, onSelectRoll }: PastRollsDrawerProps) {
   const recent = rolls.slice(0, 50);
   return (
     <BottomDrawer title="Past Rolls">

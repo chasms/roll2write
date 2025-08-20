@@ -14,21 +14,13 @@ interface DiceFormModalProps {
   die?: DieDefinition; // if provided, edit mode
 }
 
-export function DiceFormModal({
-  existingNames,
-  onClose,
-  onCreated,
-  onUpdated,
-  die,
-}: DiceFormModalProps) {
+export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, die }: DiceFormModalProps) {
   const editMode = !!die;
   const [name, setName] = useState(die?.name ?? "");
   const [sides, setSides] = useState<number>(die?.sides ?? 6);
   const [customSides, setCustomSides] = useState<string>("");
   const effectiveSides = customSides ? Number(customSides) || 0 : sides;
-  const [options, setOptions] = useState<string[]>(
-    die ? [...die.options] : Array(6).fill(""),
-  );
+  const [options, setOptions] = useState<string[]>(die ? [...die.options] : Array(6).fill(""));
   const [colorHex, setColorHex] = useState(die?.colorHex ?? "#888888");
   const [pattern, setPattern] = useState<DiePattern>(die?.pattern ?? "solid");
   const [errors, setErrors] = useState<string[]>([]);
@@ -153,9 +145,7 @@ export function DiceFormModal({
         })}
       >
         <div>
-          <h2 className={css({ fontSize: "2xl", mb: 4 })}>
-            {editMode ? "Edit Die" : "Create Die"}
-          </h2>
+          <h2 className={css({ fontSize: "2xl", mb: 4 })}>{editMode ? "Edit Die" : "Create Die"}</h2>
           <label className={css({ display: "block", mb: 2 })}>
             Name
             <input
@@ -204,13 +194,9 @@ export function DiceFormModal({
                 className={css({ w: 16, h: 10, p: 0, border: "1px solid" })}
               />
             </label>
-            <fieldset
-              className={css({ border: "1px solid", p: 3, rounded: "sm" })}
-            >
+            <fieldset className={css({ border: "1px solid", p: 3, rounded: "sm" })}>
               <legend className={css({ px: 1 })}>Pattern</legend>
-              <div
-                className={css({ display: "flex", flexWrap: "wrap", gap: 2 })}
-              >
+              <div className={css({ display: "flex", flexWrap: "wrap", gap: 2 })}>
                 {DIE_PATTERNS.map((p) => (
                   <label
                     key={p}

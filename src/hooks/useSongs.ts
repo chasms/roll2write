@@ -12,10 +12,7 @@ function emit() {
 let lastSongsSnapshot: Song[] = [];
 function getSongsSnapshot(): Song[] {
   const fresh = repo.getSongs();
-  if (
-    lastSongsSnapshot.length === fresh.length &&
-    lastSongsSnapshot.every((item, index) => item === fresh[index])
-  ) {
+  if (lastSongsSnapshot.length === fresh.length && lastSongsSnapshot.every((item, index) => item === fresh[index])) {
     return lastSongsSnapshot;
   }
   lastSongsSnapshot = fresh;
@@ -27,21 +24,14 @@ export function useSongs() {
     listeners.add(listener);
     return () => listeners.delete(listener);
   }, []);
-  const songs = useSyncExternalStore(
-    subscribe,
-    getSongsSnapshot,
-    getSongsSnapshot,
-  );
+  const songs = useSyncExternalStore(subscribe, getSongsSnapshot, getSongsSnapshot);
   const addSong = useCallback((song: Song) => {
     repo.addSong(song);
     emit();
   }, []);
-  const updateSong = useCallback(
-    (id: string, updater: (prev: Song) => Song) => {
-      repo.updateSong(id, updater);
-      emit();
-    },
-    [],
-  );
+  const updateSong = useCallback((id: string, updater: (prev: Song) => Song) => {
+    repo.updateSong(id, updater);
+    emit();
+  }, []);
   return { songs, addSong, updateSong };
 }

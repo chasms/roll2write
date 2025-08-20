@@ -18,17 +18,9 @@ function App() {
   const [newSongName, setNewSongName] = React.useState("");
   const [songsOpen, setSongsOpen] = React.useState(false);
   const [showCreateDie, setShowCreateDie] = React.useState(false);
-  const [editingDie, setEditingDie] = React.useState<
-    import("./domain/types").DieDefinition | null
-  >(null);
-  const diceById = React.useMemo(
-    () => Object.fromEntries(dice.map((d) => [d.id, d])),
-    [dice],
-  );
-  const rollsById = React.useMemo(
-    () => Object.fromEntries(rolls.map((r) => [r.id, r])),
-    [rolls],
-  );
+  const [editingDie, setEditingDie] = React.useState<import("./domain/types").DieDefinition | null>(null);
+  const diceById = React.useMemo(() => Object.fromEntries(dice.map((d) => [d.id, d])), [dice]);
+  const rollsById = React.useMemo(() => Object.fromEntries(rolls.map((r) => [r.id, r])), [rolls]);
 
   React.useEffect(() => {
     if (!currentSongId && newSongName.trim()) {
@@ -44,10 +36,7 @@ function App() {
     }
   }, [newSongName, currentSongId, addSong]);
 
-  const currentSong = React.useMemo(
-    () => songs.find((s) => s.id === currentSongId) ?? null,
-    [songs, currentSongId],
-  );
+  const currentSong = React.useMemo(() => songs.find((s) => s.id === currentSongId) ?? null, [songs, currentSongId]);
 
   function appendRollToCurrentSong(rollId: string) {
     if (!currentSong) return;
@@ -95,9 +84,7 @@ function App() {
     <div className={css({ maxW: "1400px", mx: "auto", p: 4, pb: 64 })}>
       <header className={css({ mb: 4, position: "relative" })}>
         <div className={css({ display: "flex", alignItems: "center", gap: 4 })}>
-          <h1 className={css({ fontSize: "3xl", fontWeight: "bold" })}>
-            Roll2Write
-          </h1>
+          <h1 className={css({ fontSize: "3xl", fontWeight: "bold" })}>Roll2Write</h1>
           <div className={css({ position: "relative" })}>
             <Button
               variant="primary"
@@ -125,9 +112,7 @@ function App() {
                   p: 2,
                 })}
               >
-                {songs.length === 0 && (
-                  <p className={css({ m: 0, fontSize: "sm" })}>No songs yet.</p>
-                )}
+                {songs.length === 0 && <p className={css({ m: 0, fontSize: "sm" })}>No songs yet.</p>}
                 <ul className={css({ listStyle: "none", m: 0, p: 0 })}>
                   {songs.map((s) => (
                     <li key={s.id}>
@@ -177,11 +162,7 @@ function App() {
               className={css({ border: "1px solid", px: 3, py: 2, w: "full" })}
             />
           )}
-          {currentSong && (
-            <h2 className={css({ fontSize: "2xl", fontWeight: "bold", m: 0 })}>
-              {currentSong.name}
-            </h2>
-          )}
+          {currentSong && <h2 className={css({ fontSize: "2xl", fontWeight: "bold", m: 0 })}>{currentSong.name}</h2>}
         </div>
         <div
           className={css({
@@ -232,9 +213,7 @@ function App() {
               </div>
             );
           })}
-          {!currentSong && (
-            <p>(Enter a song name above then roll dice or pick past rolls.)</p>
-          )}
+          {!currentSong && <p>(Enter a song name above then roll dice or pick past rolls.)</p>}
         </div>
       </section>
       <div
@@ -264,19 +243,13 @@ function App() {
           />
         </div>
         <div className={css({ flex: 1 })}>
-          <PastRollsDrawer
-            rolls={rolls}
-            diceById={diceById}
-            onSelectRoll={handlePastRollSelect}
-          />
+          <PastRollsDrawer rolls={rolls} diceById={diceById} onSelectRoll={handlePastRollSelect} />
         </div>
       </div>
       {showCreateDie && (
         <DiceFormModal
           die={editingDie ?? undefined}
-          existingNames={dice
-            .filter((d) => d.id !== editingDie?.id)
-            .map((d) => d.name)}
+          existingNames={dice.filter((d) => d.id !== editingDie?.id).map((d) => d.name)}
           onClose={() => {
             setShowCreateDie(false);
             setEditingDie(null);

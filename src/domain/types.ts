@@ -1,9 +1,4 @@
-export type DiePattern =
-  | "solid"
-  | "stripes"
-  | "dots"
-  | "gradient"
-  | "crosshatch";
+export type DiePattern = "solid" | "stripes" | "dots" | "gradient" | "crosshatch";
 
 export interface DieDefinition {
   id: string;
@@ -36,16 +31,8 @@ export interface ValidationIssue {
   message: string;
 }
 
-export type ValidationResult<T> =
-  | { ok: true; value: T }
-  | { ok: false; issues: ValidationIssue[] };
+export type ValidationResult<T> = { ok: true; value: T } | { ok: false; issues: ValidationIssue[] };
 
 export const DIE_SIDE_PRESETS = [4, 6, 8, 10, 12, 20, 100] as const;
 
-export const DIE_PATTERNS: DiePattern[] = [
-  "solid",
-  "stripes",
-  "dots",
-  "gradient",
-  "crosshatch",
-];
+export const DIE_PATTERNS: DiePattern[] = ["solid", "stripes", "dots", "gradient", "crosshatch"];

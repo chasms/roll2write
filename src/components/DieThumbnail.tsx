@@ -50,12 +50,7 @@ export function DieThumbnail({ die, onClick, showOption }: DieThumbnailProps) {
       onClick={onClick}
     >
       <svg width={96} height={96} viewBox="0 0 96 96">
-        <polygon
-          points={points}
-          fill={die.pattern === "dots" ? die.colorHex : "none"}
-          stroke="#222"
-          strokeWidth={2}
-        />
+        <polygon points={points} fill={die.pattern === "dots" ? die.colorHex : "none"} stroke="#222" strokeWidth={2} />
       </svg>
       <div className={dieThumbnailInnerOverlayClass} style={{ background }}>
         {showOption ?? die.name}

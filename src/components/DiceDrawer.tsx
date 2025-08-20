@@ -1,9 +1,10 @@
 import { v4 as uuid } from "uuid";
-import { css, cx } from "../../styled-system/css";
+import { cx } from "../../styled-system/css";
 import type { DieDefinition, RollResult } from "../domain/types";
 import { BottomDrawer } from "./BottomDrawer";
 import { Button } from "./Button";
 import { DieThumbnail } from "./DieThumbnail";
+import { diceWrapperClass, editButtonInnerAdjustClass, editButtonPositionClass } from "./styles/DiceDrawer.styles";
 
 interface DiceDrawerProps {
   dice: DieDefinition[];
@@ -12,12 +13,7 @@ interface DiceDrawerProps {
   onOpenEdit: (die: DieDefinition) => void;
 }
 
-export function DiceDrawer({
-  dice,
-  onRoll,
-  onOpenCreate,
-  onOpenEdit,
-}: DiceDrawerProps) {
+export function DiceDrawer({ dice, onRoll, onOpenCreate, onOpenEdit }: DiceDrawerProps) {
   function rollDie(die: DieDefinition) {
     const sideIndex = Math.floor(Math.random() * die.sides);
     const roll: RollResult = {
@@ -32,17 +28,8 @@ export function DiceDrawer({
   return (
     <BottomDrawer title="Dice">
       {dice.map((d) => {
-        const wrapperClass = css({
-          position: "relative",
-          display: "inline-block",
-        });
-        const editPositionClass = css({
-          position: "absolute",
-          top: 1,
-          right: 1,
-        });
         return (
-          <div key={d.id} className={wrapperClass}>
+          <div key={d.id} className={diceWrapperClass}>
             <DieThumbnail
               die={d}
               onClick={() => {
@@ -55,7 +42,7 @@ export function DiceDrawer({
               height={20}
               aria-label="Edit die"
               title="Edit die"
-              className={cx(editPositionClass, css({ p: 0, fontSize: "xs" }))}
+              className={cx(editButtonPositionClass, editButtonInnerAdjustClass)}
               onClick={(e) => {
                 e.stopPropagation();
                 onOpenEdit(d);
@@ -66,13 +53,7 @@ export function DiceDrawer({
           </div>
         );
       })}
-      <Button
-        onClick={onOpenCreate}
-        variant="primary"
-        width={96}
-        height={96}
-        title="Create Die"
-      >
+      <Button onClick={onOpenCreate} variant="primary" width={96} height={96} title="Create Die">
         + 🎲
       </Button>
     </BottomDrawer>
