@@ -40,6 +40,9 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
   const [colorHex, setColorHex] = useState(die?.colorHex ?? generateRandomHex());
   const [pattern, setPattern] = useState<DiePattern>(die?.pattern ?? "solid");
   const [errors, setErrors] = useState<string[]>([]);
+  const [generating, setGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const [generationNotice, setGenerationNotice] = useState<string | null>(null);
 
   // Prevent background (document body) scrolling while modal is open
   useEffect(() => {
@@ -87,6 +90,47 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
 
   function updateOption(idx: number, value: string) {
     setOptions((prev) => prev.map((o, i) => (i === idx ? value : o)));
+  }
+
+  function clearOptions() {
+    setOptions((prev) => (prev.some((o) => o.trim()) ? prev.map(() => "") : prev));
+  }
+
+  /** Fetch related words from a free public lexical API (Datamuse) to auto-populate option text. */
+  async function autoFillOptions(): Promise<void> {
+    if (!name.trim()) return;
+    setGenerating(true);
+    setGenerationError(null);
+    setGenerationNotice(null);
+    try {
+      const q = encodeURIComponent(name.trim());
+      // Request more than needed so we can filter.
+      const resp = await fetch("https://api.datamuse.com/words?rel_trg=" + q + "&max=" + String(sides * 3));
+      if (!resp.ok) throw new Error("request failed: " + String(resp.status));
+      const json: unknown = await resp.json();
+      const data = Array.isArray(json) ? (json as { word?: unknown; score?: unknown }[]) : [];
+      const picked: string[] = [];
+      for (const entry of data) {
+        if (typeof entry.word !== "string") continue;
+        const w = entry.word.trim();
+        // basic filters: avoid phrases, very short tokens, duplicates
+        if (w.includes(" ") || w.length < 3) continue;
+        const formatted = w.replace(/[_-]/g, " ").replace(/^./, (c) => c.toUpperCase());
+        if (!picked.includes(formatted)) picked.push(formatted);
+        if (picked.length >= sides) break;
+      }
+      while (picked.length < sides) {
+        picked.push(name.trim() + " " + String(picked.length + 1));
+      }
+      // Overwrite only blank slots; if user already typed values keep them.
+      setOptions((prev) => prev.map((o, i) => (o.trim() ? o : (picked[i] ?? o))));
+      setGenerationNotice("Auto-filled " + String(Math.min(picked.length, sides)) + " option(s).");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to generate options.";
+      setGenerationError(msg);
+    } finally {
+      setGenerating(false);
+    }
   }
 
   function handleSave(e: React.FormEvent) {
@@ -190,12 +234,12 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
             justifyContent: "space-between",
             gap: 4,
             position: "relative",
-            background: "linear-gradient(rgba(18,15,25,0.85), rgba(18,15,25,0.75))",
             backdropFilter: "blur(28px) saturate(140%)",
             boxShadow: "0 2px 6px -2px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06)",
             px: 4,
             py: 2,
           })}
+          style={{ background: "rgba(18,15,25,0.80)" }}
         >
           <div className={css({ display: "flex", flexDirection: "column", gap: 2 })}>
             <h2
@@ -320,7 +364,7 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                 </div>
               </fieldset>
               <div
-                className={css({ maxH: 64, overflowY: "auto", p: 2, mb: 6 })}
+                className={css({ maxH: 64, overflowY: "auto", p: 2, mb: 4 })}
                 style={{ border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.05)" }}
               >
                 {options.map((opt, i) => (
@@ -336,6 +380,71 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                     />
                   </label>
                 ))}
+              </div>
+              <div
+                className={css({ display: "flex", alignItems: "center", gap: 3, mb: 6, flexWrap: "wrap" })}
+                aria-live="polite"
+              >
+                <button
+                  type="button"
+                  disabled={!name.trim() || generating}
+                  onClick={() => {
+                    void autoFillOptions();
+                  }}
+                  className={css({
+                    px: 3,
+                    py: 2,
+                    rounded: "sm",
+                    fontSize: "sm",
+                    cursor: "pointer",
+                    border: "1px solid",
+                  })}
+                  style={{
+                    background: name.trim() ? "#4a2ed6" : "rgba(255,255,255,0.15)",
+                    color: name.trim() ? "#ffffff" : "#999999",
+                    borderColor: "rgba(255,255,255,0.35)",
+                    opacity: generating ? 0.7 : 1,
+                    cursor: !name.trim() ? "not-allowed" : "pointer",
+                  }}
+                  aria-disabled={!name.trim() || generating}
+                  aria-busy={generating || undefined}
+                >
+                  {generating ? "Generating..." : "Auto-Fill Options"}
+                </button>
+                <button
+                  type="button"
+                  disabled={options.every((o) => !o.trim())}
+                  onClick={() => {
+                    clearOptions();
+                  }}
+                  className={css({
+                    px: 3,
+                    py: 2,
+                    rounded: "sm",
+                    fontSize: "sm",
+                    cursor: "pointer",
+                    border: "1px solid",
+                  })}
+                  style={{
+                    background: options.every((o) => !o.trim()) ? "rgba(255,255,255,0.15)" : "#7b5df9",
+                    color: options.every((o) => !o.trim()) ? "#999999" : "#ffffff",
+                    borderColor: "rgba(255,255,255,0.35)",
+                  }}
+                  aria-disabled={options.every((o) => !o.trim())}
+                >
+                  Clear Options
+                </button>
+                {!name.trim() && (
+                  <span className={css({ fontSize: "xs", color: "gray.300" })}>
+                    Enter a name first to enable auto-fill.
+                  </span>
+                )}
+                {generationError && (
+                  <span className={css({ fontSize: "xs", color: "red.300" })}>{generationError}</span>
+                )}
+                {generationNotice && (
+                  <span className={css({ fontSize: "xs", color: "green.300" })}>{generationNotice}</span>
+                )}
               </div>
             </div>
           )}
@@ -539,9 +648,11 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                   className={css({
                     position: "absolute",
                     inset: 0,
-                    background: "linear-gradient(120deg, rgba(255,70,70,0.20), rgba(255,255,255,0) 65%)",
                     pointerEvents: "none",
                   })}
+                  style={{
+                    background: "linear-gradient(120deg, rgba(255,70,70,0.20), rgba(255,255,255,0) 65%)",
+                  }}
                 />
                 <span className={css({ position: "relative", flex: 1 })}>{er}</span>
                 <button
@@ -579,12 +690,12 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
             gap: 4,
             alignItems: "center",
             justifyContent: "flex-start",
-            background: "linear-gradient(rgba(18,15,25,0.75), rgba(18,15,25,0.85))",
             backdropFilter: "blur(28px) saturate(140%)",
             boxShadow: "0 -2px 6px -2px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06)",
             px: 4,
             py: 2,
           })}
+          style={{ background: "rgba(18,15,25,0.80)" }}
         >
           <button
             type="submit"
