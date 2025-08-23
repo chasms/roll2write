@@ -4,6 +4,7 @@ import { css } from "../styled-system/css";
 import { Button } from "./components/Button";
 import { DiceFormModal } from "./components/DiceFormModal";
 import { DieThumbnail } from "./components/DieThumbnail";
+import { FontGallery } from "./components/FontGallery";
 import { PastRollsSidebar } from "./components/PastRollsSidebar";
 import { DEFAULT_DICE } from "./domain/defaultDice";
 import type { RollResult, Song } from "./domain/types";
@@ -21,6 +22,8 @@ function App() {
   const [showCreateDie, setShowCreateDie] = React.useState(false);
   const [editingDie, setEditingDie] = React.useState<import("./domain/types").DieDefinition | null>(null);
   const [showPast, setShowPast] = React.useState(false);
+  const [showFonts, setShowFonts] = React.useState(false);
+  const [fontTheme, setFontTheme] = React.useState<"classic" | "alt">("alt");
   const [selectedDice, setSelectedDice] = React.useState<{ id: string; dieId: string }[]>([]);
   const seededRef = React.useRef(false);
 
@@ -133,7 +136,9 @@ function App() {
     : "Enter a song name and press Create (or Enter) to start auto-saving rolls.";
 
   return (
-    <div className={css({ maxW: "1600px", mx: "auto", p: 4, pb: 24 })}>
+    <div
+      className={`${css({ maxW: "1600px", mx: "auto", p: 4, pb: 24 })} ${fontTheme === "classic" ? "r2w-classic" : "r2w-alt"}`}
+    >
       <header className={css({ mb: 6, position: "relative" })}>
         <div className={css({ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" })}>
           <h1
@@ -161,6 +166,22 @@ function App() {
               }}
             >
               {showPast ? "Hide Past" : "Past Rolls"}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setShowFonts(true);
+              }}
+            >
+              Fonts
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setFontTheme((t) => (t === "classic" ? "alt" : "classic"));
+              }}
+            >
+              Theme: {fontTheme === "classic" ? "Classic" : "Alt"}
             </Button>
           </div>
           <div className={css({ flex: 1 })} />
@@ -477,6 +498,13 @@ function App() {
           onCreated={addDie}
           onUpdated={(d) => {
             updateDie(d.id, () => d);
+          }}
+        />
+      )}
+      {showFonts && (
+        <FontGallery
+          onClose={() => {
+            setShowFonts(false);
           }}
         />
       )}

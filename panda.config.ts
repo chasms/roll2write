@@ -24,6 +24,12 @@ export default defineConfig({
           rune: { 500: { value: "#ffc94d" }, 600: { value: "#f5b833" } },
           glass: { 500: { value: "rgba(255,255,255,0.08)" }, 600: { value: "rgba(255,255,255,0.12)" } },
         },
+        fonts: {
+          medieval: { value: '"MedievalSharp", "Almendra Display", Georgia, serif' },
+          display: { value: '"Almendra Display", "MedievalSharp", Georgia, serif' },
+          body: { value: '"MedievalSharp", Georgia, serif' },
+          mono: { value: '"TechMono", Menlo, monospace' },
+        },
         blurs: {
           glow: { value: "12px" },
           panel: { value: "18px" },

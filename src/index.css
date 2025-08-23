@@ -1,11 +1,7 @@
 @layer reset, base, tokens, recipes, utilities;
 
 /* Futuristic illuminated manuscript theme foundation */
-@font-face {
-  font-family: "ManuscriptDisplay";
-  src: local("Palatino Linotype"), local("Palatino");
-  font-display: swap;
-}
+/* Font stack now leverages externally loaded medieval / calligraphic families */
 @font-face {
   font-family: "TechMono";
   src: local("Menlo"), local("Roboto Mono"), local("Courier New");
@@ -21,7 +17,7 @@
   --r2w-ink: #dfd2b5;
   --r2w-ink-dim: #b7ac9b;
   --r2w-border-glow: 0 0 0 1px rgba(255,255,255,0.06), 0 0 18px -4px var(--r2w-accent-glow);
-  font-family: ManuscriptDisplay, system-ui, serif;
+  font-family: "MedievalSharp", "Almendra Display", Georgia, serif;
   line-height: 1.5;
   font-weight: 400;
   user-select: none;
@@ -54,9 +50,31 @@ body {
 }
 
 h1, h2, h3, h4 {
-  font-family: ManuscriptDisplay, serif;
+  font-family: "Almendra Display", "MedievalSharp", Georgia, serif;
+  letter-spacing: 0.75px;
+  text-shadow: 0 0 6px rgba(255,255,255,0.08), 0 0 22px rgba(123,93,249,0.32), 0 0 2px rgba(255,255,255,0.25);
+}
+
+/* Extra flavor for main title */
+h1 {
+  font-weight: 700;
   letter-spacing: 0.5px;
-  text-shadow: 0 0 6px rgba(255,255,255,0.08), 0 0 24px rgba(123,93,249,0.35);
+}
+
+/* Classic font theme (uses earlier decorative stack) */
+.r2w-classic {
+  font-family: "Cormorant SC", "Cinzel Decorative", "Uncial Antiqua", "MedievalSharp", Georgia, serif;
+}
+.r2w-classic h1, .r2w-classic h2, .r2w-classic h3, .r2w-classic h4 {
+  font-family: "Uncial Antiqua", "Cinzel Decorative", "Cormorant SC", "MedievalSharp", Georgia, serif;
+}
+
+/* Alternate medieval theme (current default already set on :root, but class hook for explicit assignment) */
+.r2w-alt {
+  font-family: "MedievalSharp", "Almendra Display", Georgia, serif;
+}
+.r2w-alt h1, .r2w-alt h2, .r2w-alt h3, .r2w-alt h4 {
+  font-family: "Almendra Display", "MedievalSharp", Georgia, serif;
 }
 
 code, pre, .mono {
