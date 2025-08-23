@@ -18,6 +18,7 @@ export function PastRollsDrawer({ rolls, diceById, onSelectRoll }: PastRollsDraw
           <DieThumbnail
             key={r.id}
             die={die}
+            size={48}
             showOption={r.option}
             onClick={() => {
               onSelectRoll(r);

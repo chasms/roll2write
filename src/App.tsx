@@ -5,6 +5,7 @@ import { Button } from "./components/Button";
 import { DiceDrawer } from "./components/DiceDrawer";
 import { DiceFormModal } from "./components/DiceFormModal";
 import { PastRollsDrawer } from "./components/PastRollsDrawer";
+import { DEFAULT_DICE } from "./domain/defaultDice";
 import type { RollResult, Song } from "./domain/types";
 import { useDice } from "./hooks/useDice";
 import { useRolls } from "./hooks/useRolls";
@@ -35,6 +36,23 @@ function App() {
       setSongsOpen(false);
     }
   }, [newSongName, currentSongId, addSong]);
+
+  // Seed default dice if none of those IDs exist yet.
+  React.useEffect(() => {
+    if (dice.length === 0) {
+      DEFAULT_DICE.forEach((d) => {
+        addDie(d);
+      });
+      return;
+    }
+    const existingIds = new Set(dice.map((d) => d.id));
+    const missing = DEFAULT_DICE.filter((d) => !existingIds.has(d.id));
+    if (missing.length > 0) {
+      missing.forEach((d) => {
+        addDie(d);
+      });
+    }
+  }, [dice, addDie]);
 
   const currentSong = React.useMemo(() => songs.find((s) => s.id === currentSongId) ?? null, [songs, currentSongId]);
 
@@ -82,9 +100,22 @@ function App() {
 
   return (
     <div className={css({ maxW: "1400px", mx: "auto", p: 4, pb: 64 })}>
-      <header className={css({ mb: 4, position: "relative" })}>
+      <header className={css({ mb: 6, position: "relative" })}>
         <div className={css({ display: "flex", alignItems: "center", gap: 4 })}>
-          <h1 className={css({ fontSize: "3xl", fontWeight: "bold" })}>Roll2Write</h1>
+          <h1
+            className={css({
+              fontSize: "4xl",
+              fontWeight: "bold",
+              backgroundClip: "text",
+              color: "transparent",
+            })}
+            style={{
+              backgroundImage: "linear-gradient(90deg,#7b5df9 0%, #c184ff 50%, #8bd6ff 100%)",
+              WebkitBackgroundClip: "text",
+            }}
+          >
+            Roll2Write
+          </h1>
           <div className={css({ position: "relative" })}>
             <Button
               variant="primary"
@@ -101,16 +132,19 @@ function App() {
                   top: "100%",
                   left: 0,
                   mt: 2,
-                  border: "1px solid",
-                  bg: { base: "white", _dark: "gray.800" },
-                  color: { base: "black", _dark: "white" },
-                  rounded: "sm",
+                  rounded: "md",
                   zIndex: 10,
                   minW: 60,
                   maxH: 80,
                   overflowY: "auto",
                   p: 2,
                 })}
+                style={{
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  background: "rgba(255,255,255,0.05)",
+                  backdropFilter: "blur(18px)",
+                  color: "#ebe5d7",
+                }}
               >
                 {songs.length === 0 && <p className={css({ m: 0, fontSize: "sm" })}>No songs yet.</p>}
                 <ul className={css({ listStyle: "none", m: 0, p: 0 })}>
@@ -141,15 +175,12 @@ function App() {
         </p>
       </header>
       <section
-        className={css({
-          border: "1px solid",
-          rounded: "md",
-          minH: 96,
-          p: 4,
-          mb: 8,
-          position: "relative",
-          bg: { base: "gray.50", _dark: "gray.900" },
-        })}
+        className={css({ rounded: "md", minH: 96, p: 5, mb: 10, position: "relative" })}
+        style={{
+          border: "1px solid rgba(255,255,255,0.15)",
+          background: "rgba(255,255,255,0.05)",
+          backdropFilter: "blur(14px)",
+        }}
       >
         <div className={css({ mb: 4 })}>
           {!currentSong && (
@@ -159,7 +190,11 @@ function App() {
               onChange={(e) => {
                 setNewSongName(e.target.value);
               }}
-              className={css({ border: "1px solid", px: 3, py: 2, w: "full" })}
+              className={css({ px: 3, py: 2, w: "full" })}
+              style={{
+                border: "1px solid rgba(255,255,255,0.2)",
+                background: "rgba(255,255,255,0.08)",
+              }}
             />
           )}
           {currentSong && <h2 className={css({ fontSize: "2xl", fontWeight: "bold", m: 0 })}>{currentSong.name}</h2>}
@@ -178,15 +213,12 @@ function App() {
             return (
               <div key={id} className={css({ position: "relative" })}>
                 <div
-                  className={css({
-                    border: "1px solid",
-                    rounded: "sm",
-                    px: 2,
-                    py: 1,
-                    bg: "purple.600",
-                    color: "white",
-                    fontSize: "sm",
-                  })}
+                  className={css({ rounded: "sm", px: 3, py: 2, color: "white", fontSize: "sm" })}
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    background: "#4a2ed6",
+                    boxShadow: "0 0 0 1px rgba(0,0,0,0.4), 0 0 12px -2px rgba(123,93,249,0.6)",
+                  }}
                 >
                   {die.name}: {roll.option}
                 </div>
@@ -201,11 +233,11 @@ function App() {
                     w: 5,
                     h: 5,
                     rounded: "full",
-                    bg: "red.600",
                     color: "white",
                     fontSize: "xs",
                     lineHeight: 1,
                   })}
+                  style={{ background: "#f5b833" }}
                   title="Remove"
                 >
                   ×

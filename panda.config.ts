@@ -13,6 +13,26 @@ export default defineConfig({
   // Useful for theme customization
   theme: {
     extend: {
+      tokens: {
+        colors: {
+          parchment: { 50: { value: "#f5f2ea" }, 100: { value: "#ebe5d7" }, 200: { value: "#dfd2b5" } },
+          ink: { 900: { value: "#120f19" }, 700: { value: "#241d33" } },
+          arcane: { 400: { value: "#7b5df9" }, 500: { value: "#6243f3" }, 600: { value: "#4a2ed6" } },
+          crystal: { 400: { value: "#8bd6ff" }, 500: { value: "#5cbfee" }, 600: { value: "#2ea6dc" } },
+          obsidian: { 400: { value: "#4d5663" }, 500: { value: "#353c46" }, 600: { value: "#1f2329" } },
+          ethereal: { 400: { value: "#d3a8ff" }, 500: { value: "#c184ff" }, 600: { value: "#aa50ff" } },
+          rune: { 500: { value: "#ffc94d" }, 600: { value: "#f5b833" } },
+          glass: { 500: { value: "rgba(255,255,255,0.08)" }, 600: { value: "rgba(255,255,255,0.12)" } },
+        },
+        blurs: {
+          glow: { value: "12px" },
+          panel: { value: "18px" },
+        },
+        shadows: {
+          glow: { value: "0 0 0 1px rgba(255,255,255,0.05), 0 0 12px 2px rgba(124,82,255,0.35)" },
+          insetRune: { value: "inset 0 0 0 1px rgba(255,255,255,0.15), 0 0 0 1px rgba(0,0,0,0.4)" },
+        },
+      },
       keyframes: {
         spin: {
           from: { transform: "rotate(0deg)" },
@@ -41,6 +61,10 @@ export default defineConfig({
               accent: { bg: "purple.600", color: "white" },
               warn: { bg: "orange.600", color: "white" },
               teal: { bg: "teal.600", color: "white" },
+              arcane: { bg: "arcane.600", color: "white", boxShadow: "glow" },
+              crystal: { bg: "crystal.500", color: "ink.900" },
+              obsidian: { bg: "obsidian.600", color: "parchment.100" },
+              ethereal: { bg: "ethereal.600", color: "ink.900", boxShadow: "0 0 0 1px rgba(255,255,255,0.2)" },
             },
             active: {
               true: { outline: "2px solid", outlineColor: "blue.400" },
@@ -89,6 +113,17 @@ export default defineConfig({
             rounded: "full",
             animation: "spin",
             mx: "auto",
+          },
+        },
+        glassPanel: {
+          className: "r2wGlassPanel",
+          base: {
+            bg: "glass.500",
+            backdropFilter: "blur(18px)",
+            border: "1px solid",
+            borderColor: "rgba(255,255,255,0.15)",
+            boxShadow: "0 0 0 1px rgba(255,255,255,0.07), 0 4px 24px -4px rgba(0,0,0,0.6)",
+            rounded: "md",
           },
         },
       },

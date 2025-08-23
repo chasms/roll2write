@@ -1,4 +1,5 @@
-export type DiePattern = "solid" | "stripes" | "dots" | "gradient" | "crosshatch";
+// 3D-feasible patterns (reduced from previous list to those we can procedurally texture simply)
+export type DiePattern = "solid" | "stripes" | "gradient";
 
 export interface DieDefinition {
   id: string;
@@ -9,6 +10,25 @@ export interface DieDefinition {
   updatedAt: string; // ISO
   colorHex: string; // user-chosen hex color (#RRGGBB)
   pattern: DiePattern; // visual pattern key
+  // Optional advanced appearance overrides for 3D rendering
+  appearance?: {
+    roughness?: number;
+    metalness?: number;
+    reflectivity?: number;
+    transmission?: number;
+    ior?: number;
+    thickness?: number;
+    attenuationDistance?: number;
+    attenuationColor?: string;
+    opacity?: number;
+    clearcoat?: number;
+    clearcoatRoughness?: number;
+    sheen?: number;
+    sheenColor?: string;
+    sparkleIntensity?: number;
+    sparkleCount?: number;
+    sparkleColor?: string;
+  };
 }
 
 export interface RollResult {
@@ -33,6 +53,6 @@ export interface ValidationIssue {
 
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; issues: ValidationIssue[] };
 
-export const DIE_SIDE_PRESETS = [4, 6, 8, 10, 12, 20, 100] as const;
+export const DIE_SIDE_PRESETS = [4, 6, 8, 12, 20, 100] as const; // removed d10 per new fixed set
 
-export const DIE_PATTERNS: DiePattern[] = ["solid", "stripes", "dots", "gradient", "crosshatch"];
+export const DIE_PATTERNS: DiePattern[] = ["solid", "stripes", "gradient"];

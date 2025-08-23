@@ -1,4 +1,5 @@
 // Utility functions for deterministic dice appearance (rotation) and pattern backgrounds.
+import { DIE_THUMBNAIL_SIZE } from "../components/styles/DieThumbnail.styles";
 import type { DieDefinition, DiePattern } from "../domain/types";
 
 export function hashAngle(id: string): number {
@@ -11,8 +12,8 @@ export function hashAngle(id: string): number {
   return Math.round(fullAngle / 15) * 15; // snap to 15-deg increments
 }
 
-export function polygonPoints(sides: number, radius = 48): string {
-  const limited = Math.min(Math.max(sides, 3), 48);
+export function polygonPoints(sides: number, radius = DIE_THUMBNAIL_SIZE): string {
+  const limited = Math.min(Math.max(sides, 3), radius);
   const points: string[] = [];
   const angleStep = (Math.PI * 2) / limited;
   const rotationOffset = -Math.PI / 2;
@@ -33,12 +34,8 @@ export function patternBackground(pattern: DiePattern, colorHex: string): string
       return colorHex;
     case "stripes":
       return `repeating-linear-gradient(45deg, ${colorHex}, ${colorHex} 6px, ${lighten} 6px, ${lighten} 12px)`;
-    case "dots":
-      return `radial-gradient(circle at 4px 4px, ${lighten} 2px, ${colorHex} 2px)`;
     case "gradient":
       return `linear-gradient(135deg, ${lighten}, ${darken})`;
-    case "crosshatch":
-      return `repeating-linear-gradient(45deg, ${colorHex}, ${colorHex} 5px, ${lighten} 5px, ${lighten} 10px), repeating-linear-gradient(-45deg, ${colorHex}, ${colorHex} 5px, ${lighten} 5px, ${lighten} 10px)`;
     default:
       return colorHex;
   }

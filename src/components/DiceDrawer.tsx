@@ -32,6 +32,7 @@ export function DiceDrawer({ dice, onRoll, onOpenCreate, onOpenEdit }: DiceDrawe
           <div key={d.id} className={diceWrapperClass}>
             <DieThumbnail
               die={d}
+              size={56}
               onClick={() => {
                 rollDie(d);
               }}

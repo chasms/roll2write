@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import panda from "@pandacss/eslint-plugin";
+import eslintConfigPrettier from "eslint-config-prettier/flat";
 import importPlugin from "eslint-plugin-import";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import pluginReact from "eslint-plugin-react";
@@ -35,6 +36,9 @@ export default tseslint.config([
   },
   {
     files: ["**/*.{ts,tsx}"],
+    plugins: {
+      "simple-import-sort": simpleImportSort,
+    },
     extends: [
       importPlugin.flatConfigs.recommended,
       importPlugin.flatConfigs.typescript,
@@ -45,10 +49,8 @@ export default tseslint.config([
       pluginReact.configs.flat.recommended,
       pandaPluginRecommended,
       eslintPluginPrettierRecommended,
+      eslintConfigPrettier,
     ],
-    plugins: {
-      "simple-import-sort": simpleImportSort,
-    },
     rules: {
       "import/consistent-type-specifier-style": "off",
       "react/react-in-jsx-scope": "off",
