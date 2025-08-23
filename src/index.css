@@ -25,6 +25,12 @@
   --r2w-ink: #dfd2b5;
   --r2w-ink-dim: #b7ac9b;
   --r2w-border-glow: 0 0 0 1px rgba(255,255,255,0.06), 0 0 18px -4px var(--r2w-accent-glow);
+  /* Button accessible defaults */
+  --r2w-btn-bg: #5b32c9;
+  --r2w-btn-bg-hover: #6f3fff;
+  --r2w-btn-bg-active: #4a27a9;
+  --r2w-btn-text: #ffffff;
+  --r2w-btn-outline: rgba(255,255,255,0.28);
   font-family: "MedievalSharp", "Almendra Display", Georgia, serif;
   line-height: 1.5;
   font-weight: 400;
@@ -82,6 +88,11 @@ h1 {
   --r2w-button-primary-bg: linear-gradient(130deg,#b487ff 0%, #d6b657 55%, #ffdfb0 100%);
   --r2w-button-primary-border: rgba(255,222,179,0.5);
   --r2w-selection-bg: rgba(55,38,20,0.35);
+  --r2w-btn-bg: #5d3c12;
+  --r2w-btn-bg-hover: #7a5018;
+  --r2w-btn-bg-active: #4a2c0d;
+  --r2w-btn-text: #ffefcc;
+  --r2w-btn-outline: rgba(255,239,204,0.4);
 }
 .r2w-classic h1, .r2w-classic h2, .r2w-classic h3, .r2w-classic h4 {
   font-family: "Uncial Antiqua", "Cinzel Decorative", "Cormorant SC", "MedievalSharp", Georgia, serif;
@@ -100,6 +111,11 @@ h1 {
   --r2w-button-primary-bg: var(--r2w-accent-gradient);
   --r2w-button-primary-border: rgba(255,255,255,0.3);
   --r2w-selection-bg: rgba(0,0,0,0.15);
+  --r2w-btn-bg: #5b32c9;
+  --r2w-btn-bg-hover: #7242f0;
+  --r2w-btn-bg-active: #462497;
+  --r2w-btn-text: #ffffff;
+  --r2w-btn-outline: rgba(255,255,255,0.25);
 }
 .r2w-alt h1, .r2w-alt h2, .r2w-alt h3, .r2w-alt h4 {
   font-family: "Almendra Display", "MedievalSharp", Georgia, serif;
@@ -164,3 +180,91 @@ input[type=range] { accent-color: var(--r2w-accent); }
 
 /* Die modal specific overlay tweak fallback */
 .die-modal-overlay { backdrop-filter: blur(10px); }
+
+/* Accessible whimsical button skin (applied via extra class) */
+.r2w-fae-btn {
+  position: relative;
+  background: var(--r2w-btn-bg);
+  color: var(--r2w-btn-text) !important;
+  border: 1px solid var(--r2w-btn-outline);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.35), 0 2px 6px -1px rgba(0,0,0,0.6), 0 0 0 1px inset rgba(255,255,255,0.08);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.55);
+  letter-spacing: 0.5px;
+  overflow: hidden;
+}
+.r2w-fae-btn:before, .r2w-fae-btn:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.r2w-fae-btn:before { /* inner shimmer */
+  background: linear-gradient(130deg,rgba(255,255,255,0.18),transparent 40%,rgba(255,255,255,0.12) 60%,transparent 85%);
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+  transition: opacity .25s;
+}
+.r2w-fae-btn:after { /* subtle rune border (SVG pattern) */
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='40' viewBox='0 0 120 40'><text x='4' y='18' font-size='14' fill='%23d6b657' font-family='Uncial Antiqua'>ᚠᛞᚨᚱᚲ</text><text x='60' y='34' font-size='14' fill='%23c184ff' font-family='Uncial Antiqua'>ᛒᚱᛟᚨᛁᚾ</text></svg>");
+  background-size: 140% 140%;
+  background-repeat: no-repeat;
+  mix-blend-mode: soft-light;
+  opacity: .25;
+  filter: blur(.4px);
+  transition: opacity .3s;
+}
+.r2w-fae-btn:hover { background: var(--r2w-btn-bg-hover); }
+.r2w-fae-btn:hover:before { opacity: .9; }
+.r2w-fae-btn:active { background: var(--r2w-btn-bg-active); }
+.r2w-fae-btn:focus-visible { outline: 2px solid var(--r2w-btn-text); outline-offset: 2px; }
+.r2w-fae-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+/* Sparkle layer */
+.r2w-sparkles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background-image: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.25) 0 2px, transparent 3px),
+    radial-gradient(circle at 80% 30%, rgba(255,255,255,0.15) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 30% 70%, rgba(255,255,255,0.22) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 60% 85%, rgba(255,255,255,0.18) 0 1.5px, transparent 2.5px);
+  background-size: 400px 400px, 600px 600px, 500px 500px, 700px 700px;
+  animation: r2wTwinkle 12s linear infinite;
+  mix-blend-mode: screen;
+}
+@keyframes r2wTwinkle {
+  0% { opacity: .55; background-position: 0 0, 0 0, 0 0, 0 0; }
+  50% { opacity: .9; background-position: 200px 180px, 300px 260px, 250px 240px, 350px 360px; }
+  100% { opacity: .55; background-position: 400px 360px, 600px 520px, 500px 480px, 700px 720px; }
+}
+
+/* Parchment texture (classic only overlays) */
+.r2w-classic:before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 2px, transparent 2px 4px),
+    radial-gradient(circle at 30% 40%, rgba(255,255,255,0.08), transparent 70%),
+    radial-gradient(circle at 70% 70%, rgba(255,215,150,0.12), transparent 75%);
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+/* Illuminated drop caps (apply class 'illuminated' to p) */
+.r2w-classic p.illuminated:first-letter, .r2w-alt p.illuminated:first-letter {
+  float: left;
+  font-size: 3.2em;
+  line-height: 0.9;
+  padding: 4px 6px 4px 4px;
+  margin: 4px 10px 0 0;
+  background: var(--r2w-accent-gradient);
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(0,0,0,0.4), 0 0 12px var(--r2w-accent-glow);
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 2px 6px -2px rgba(0,0,0,0.6);
+}

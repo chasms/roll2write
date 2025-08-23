@@ -149,7 +149,8 @@ function App() {
           </h1>
           <div className={css({ position: "relative", display: "flex", gap: 3 })}>
             <Button
-              variant="primary"
+              className="r2w-fae-btn"
+              variant="fae"
               onClick={() => {
                 setSongsOpen((o) => !o);
               }}
@@ -157,7 +158,8 @@ function App() {
               Songs {songsOpen ? "▲" : "▼"}
             </Button>
             <Button
-              variant="primary"
+              className="r2w-fae-btn"
+              variant="fae"
               onClick={() => {
                 setShowPast((o) => !o);
               }}
@@ -165,7 +167,8 @@ function App() {
               {showPast ? "Hide Past" : "Past Rolls"}
             </Button>
             <Button
-              variant="primary"
+              className="r2w-fae-btn"
+              variant="fae"
               onClick={() => {
                 setShowFonts(true);
               }}
@@ -173,7 +176,8 @@ function App() {
               Fonts
             </Button>
             <Button
-              variant="primary"
+              className="r2w-fae-btn"
+              variant="fae"
               onClick={() => {
                 setFontTheme((t) => (t === "classic" ? "alt" : "classic"));
               }}
@@ -258,6 +262,7 @@ function App() {
                     style={{ border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)" }}
                   />
                   <Button
+                    className="r2w-fae-btn"
                     variant="primary"
                     disabled={!newSongName.trim()}
                     onClick={() => {
@@ -322,7 +327,8 @@ function App() {
             </div>
             <div className={css({ mt: 4, display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center" })}>
               <Button
-                variant="primary"
+                className="r2w-fae-btn"
+                variant="fae"
                 disabled={!currentSong || selectedDice.length === 0}
                 onClick={() => {
                   rollAllSelected();
@@ -502,6 +508,7 @@ function App() {
           }}
         />
       )}
+      <div className="r2w-sparkles" />
     </div>
   );
 }

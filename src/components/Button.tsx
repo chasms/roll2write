@@ -4,7 +4,7 @@ import { buttonRecipe } from "./styles/Button.styles";
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   width?: number | string;
   height?: number | string;
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "fae";
   busy?: boolean;
 }
 
