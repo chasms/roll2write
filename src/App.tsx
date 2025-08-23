@@ -27,20 +27,21 @@ function App() {
   const diceById = React.useMemo(() => Object.fromEntries(dice.map((d) => [d.id, d])), [dice]);
   const rollsById = React.useMemo(() => Object.fromEntries(rolls.map((r) => [r.id, r])), [rolls]);
 
-  // Create song when name entered first time.
-  React.useEffect(() => {
-    if (!currentSongId && newSongName.trim()) {
-      const song: Song = {
-        id: uuid(),
-        name: newSongName.trim(),
-        rollIds: [],
-        createdAt: new Date().toISOString(),
-      };
-      addSong(song);
-      setCurrentSongId(song.id);
-      setSongsOpen(false);
-    }
-  }, [newSongName, currentSongId, addSong]);
+  function createSong() {
+    if (currentSongId) return; // already have one
+    const name = newSongName.trim();
+    if (!name) return;
+    const song: Song = {
+      id: uuid(),
+      name,
+      rollIds: [],
+      createdAt: new Date().toISOString(),
+    };
+    addSong(song);
+    setCurrentSongId(song.id);
+    setSongsOpen(false);
+    setNewSongName("");
+  }
 
   // Seed default dice once.
   React.useEffect(() => {
@@ -129,7 +130,7 @@ function App() {
   });
   const songStatusMessage = currentSong
     ? "Adding rolls auto-saves to current song."
-    : "Enter a song name to create and start auto-saving.";
+    : "Enter a song name and press Create (or Enter) to start auto-saving rolls.";
 
   return (
     <div className={css({ maxW: "1600px", mx: "auto", p: 4, pb: 24 })}>
@@ -223,15 +224,31 @@ function App() {
           <div className={css({ flex: 1, minW: 0 })}>
             <div className={css({ mb: 4 })}>
               {!currentSong && (
-                <input
-                  placeholder="New song name..."
-                  value={newSongName}
-                  onChange={(e) => {
-                    setNewSongName(e.target.value);
-                  }}
-                  className={css({ px: 3, py: 2, w: "full" })}
-                  style={{ border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)" }}
-                />
+                <div className={css({ display: "flex", gap: 3, flexWrap: "wrap", alignItems: "stretch" })}>
+                  <input
+                    placeholder="New song name..."
+                    value={newSongName}
+                    onChange={(e) => {
+                      setNewSongName(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        createSong();
+                      }
+                    }}
+                    className={css({ px: 3, py: 2, flex: 1, minW: 60 })}
+                    style={{ border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)" }}
+                  />
+                  <Button
+                    variant="primary"
+                    disabled={!newSongName.trim()}
+                    onClick={() => {
+                      createSong();
+                    }}
+                  >
+                    Create
+                  </Button>
+                </div>
               )}
               {currentSong && (
                 <h2 className={css({ fontSize: "2xl", fontWeight: "bold", m: 0 })}>{currentSong.name}</h2>

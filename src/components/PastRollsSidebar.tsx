@@ -72,7 +72,6 @@ export const PastRollsSidebar: React.FC<PastRollsSidebarProps> = ({ open, onClos
         {recent.length === 0 && <p className={css({ fontSize: "sm", color: "gray.300", m: 0 })}>No rolls yet.</p>}
         {recent.map((r) => {
           const die = diceById[r.dieId];
-          if (!die) return null;
           return (
             <DieThumbnail
               key={r.id}
