@@ -143,10 +143,7 @@ function App() {
         <div className={css({ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" })}>
           <h1
             className={css({ fontSize: "4xl", fontWeight: "bold", backgroundClip: "text", color: "transparent" })}
-            style={{
-              backgroundImage: "linear-gradient(90deg,#7b5df9 0%, #c184ff 50%, #8bd6ff 100%)",
-              WebkitBackgroundClip: "text",
-            }}
+            style={{ backgroundImage: "var(--r2w-header-gradient)", WebkitBackgroundClip: "text" }}
           >
             Roll2Write
           </h1>
@@ -235,8 +232,8 @@ function App() {
       <section
         className={css({ rounded: "md", p: 5, mb: 12, position: "relative" })}
         style={{
-          border: "1px solid rgba(255,255,255,0.15)",
-          background: "rgba(255,255,255,0.05)",
+          border: "1px solid var(--r2w-panel-border)",
+          background: "var(--r2w-panel-bg)",
           backdropFilter: "blur(14px)",
         }}
       >
@@ -285,7 +282,7 @@ function App() {
                 if (dieId) addDieToSelection(dieId);
               }}
               className={selectionAreaClass}
-              style={{ borderColor: "rgba(255,255,255,0.3)", background: "rgba(0,0,0,0.15)" }}
+              style={{ borderColor: "var(--r2w-panel-border)", background: "var(--r2w-selection-bg)" }}
             >
               {selectedDice.length === 0 && (
                 <span className={css({ fontSize: "sm", color: "gray.300" })}>
@@ -355,10 +352,7 @@ function App() {
                   <div key={id} className={css({ position: "relative" })}>
                     <div
                       className={css({ rounded: "sm", px: 3, py: 2, color: "white", fontSize: "sm" })}
-                      style={{
-                        border: "1px solid rgba(255,255,255,0.2)",
-                        background: "#4a2ed6",
-                      }}
+                      style={{ border: "1px solid rgba(255,255,255,0.2)", background: "#4a2ed6" }}
                     >
                       {die.name}: {roll.option}
                     </div>
@@ -467,9 +461,9 @@ function App() {
           zIndex: 60,
         })}
         style={{
-          background: "linear-gradient(140deg,#7b5df9,#c184ff,#8bd6ff)",
+          background: "var(--r2w-button-primary-bg)",
           color: "white",
-          border: "1px solid rgba(255,255,255,0.3)",
+          border: "1px solid var(--r2w-button-primary-border)",
         }}
         aria-label="Create Die"
         title="Create Die"

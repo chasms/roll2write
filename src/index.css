@@ -11,8 +11,16 @@
 :root {
   --r2w-bg: radial-gradient(circle at 30% 30%, #241d33 0%, #120f19 55%, #0b0810 100%);
   --r2w-noise: repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 4px);
+  /* Default (alt) accent set */
   --r2w-accent: #7b5df9;
   --r2w-accent-glow: rgba(123, 93, 249, 0.55);
+  --r2w-accent-gradient: linear-gradient(140deg,#7b5df9 0%, #c184ff 45%, #8bd6ff 90%);
+  --r2w-header-gradient: linear-gradient(90deg,#7b5df9 0%, #c184ff 50%, #8bd6ff 100%);
+  --r2w-panel-bg: rgba(255,255,255,0.05);
+  --r2w-panel-border: rgba(255,255,255,0.15);
+  --r2w-button-primary-bg: var(--r2w-accent-gradient);
+  --r2w-button-primary-border: rgba(255,255,255,0.3);
+  --r2w-selection-bg: rgba(0,0,0,0.15);
   --r2w-parchment: #ebe5d7;
   --r2w-ink: #dfd2b5;
   --r2w-ink-dim: #b7ac9b;
@@ -64,6 +72,16 @@ h1 {
 /* Classic font theme (uses earlier decorative stack) */
 .r2w-classic {
   font-family: "Cormorant SC", "Cinzel Decorative", "Uncial Antiqua", "MedievalSharp", Georgia, serif;
+  /* Classic palette overrides: warmer parchment, gilded accents, deeper night sky */
+  --r2w-accent: #d6b657;
+  --r2w-accent-glow: rgba(214,182,87,0.55);
+  --r2w-accent-gradient: linear-gradient(135deg,#583c9e 0%, #d6b657 28%, #f2c979 55%, #ffdfb0 82%, #b487ff 100%);
+  --r2w-header-gradient: linear-gradient(95deg,#ffdfb0 0%, #d6b657 40%, #b487ff 100%);
+  --r2w-panel-bg: rgba(46,35,18,0.35);
+  --r2w-panel-border: rgba(255,222,179,0.25);
+  --r2w-button-primary-bg: linear-gradient(130deg,#b487ff 0%, #d6b657 55%, #ffdfb0 100%);
+  --r2w-button-primary-border: rgba(255,222,179,0.5);
+  --r2w-selection-bg: rgba(55,38,20,0.35);
 }
 .r2w-classic h1, .r2w-classic h2, .r2w-classic h3, .r2w-classic h4 {
   font-family: "Uncial Antiqua", "Cinzel Decorative", "Cormorant SC", "MedievalSharp", Georgia, serif;
@@ -72,6 +90,16 @@ h1 {
 /* Alternate medieval theme (current default already set on :root, but class hook for explicit assignment) */
 .r2w-alt {
   font-family: "MedievalSharp", "Almendra Display", Georgia, serif;
+  /* Ensure alt theme reasserts its palette if toggled after classic */
+  --r2w-accent: #7b5df9;
+  --r2w-accent-glow: rgba(123,93,249,0.55);
+  --r2w-accent-gradient: linear-gradient(140deg,#7b5df9 0%, #c184ff 45%, #8bd6ff 90%);
+  --r2w-header-gradient: linear-gradient(90deg,#7b5df9 0%, #c184ff 50%, #8bd6ff 100%);
+  --r2w-panel-bg: rgba(255,255,255,0.05);
+  --r2w-panel-border: rgba(255,255,255,0.15);
+  --r2w-button-primary-bg: var(--r2w-accent-gradient);
+  --r2w-button-primary-border: rgba(255,255,255,0.3);
+  --r2w-selection-bg: rgba(0,0,0,0.15);
 }
 .r2w-alt h1, .r2w-alt h2, .r2w-alt h3, .r2w-alt h4 {
   font-family: "Almendra Display", "MedievalSharp", Georgia, serif;
