@@ -39,20 +39,15 @@ function App() {
 
   // Seed default dice if none of those IDs exist yet.
   React.useEffect(() => {
-    if (dice.length === 0) {
-      DEFAULT_DICE.forEach((d) => {
-        addDie(d);
-      });
-      return;
-    }
     const existingIds = new Set(dice.map((d) => d.id));
     const missing = DEFAULT_DICE.filter((d) => !existingIds.has(d.id));
+
     if (missing.length > 0) {
       missing.forEach((d) => {
         addDie(d);
       });
     }
-  }, [dice, addDie]);
+  }, []);
 
   const currentSong = React.useMemo(() => songs.find((s) => s.id === currentSongId) ?? null, [songs, currentSongId]);
 

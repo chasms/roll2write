@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { v4 as uuid } from "uuid";
 import { css } from "../../styled-system/css";
 import { APPEARANCE_PRESETS } from "../domain/appearancePresets";
@@ -40,6 +40,23 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
   const [colorHex, setColorHex] = useState(die?.colorHex ?? generateRandomHex());
   const [pattern, setPattern] = useState<DiePattern>(die?.pattern ?? "solid");
   const [errors, setErrors] = useState<string[]>([]);
+
+  // Prevent background (document body) scrolling while modal is open
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    // Compute scrollbar width to avoid layout shift when hiding scroll
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (scrollBarWidth > 0) {
+      // Add padding so content does not shift due to scrollbar disappearance
+      document.body.style.paddingRight = String(scrollBarWidth) + "px";
+    }
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
+  }, []);
   const [appearance, setAppearance] = useState<DieDefinition["appearance"]>(
     die?.appearance ?? {
       roughness: 0.55,
@@ -145,14 +162,13 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
         onSubmit={handleSave}
         className={css({
           rounded: "lg",
-          p: 8,
           maxW: "1000px",
           w: "full",
           maxH: "90vh",
-          overflowY: "auto",
-          display: "grid",
-          gap: 8,
-          gridTemplateColumns: { base: "1fr" },
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          position: "relative",
         })}
         style={{
           background: "rgba(255,255,255,0.06)",
@@ -160,48 +176,39 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
           border: "1px solid rgba(255,255,255,0.2)",
           boxShadow: "0 0 0 1px rgba(0,0,0,0.4), 0 0 28px -6px rgba(123,93,249,0.7)",
           backdropFilter: "blur(22px)",
+          // expose a CSS variable for footer height so toast positioning can follow if adjusted
+          // cast to any to allow custom property without extending types
+          ...({ "--footer-height": "56px" } as React.CSSProperties),
         }}
       >
-        <div>
-          {/* Sticky header with title, preview, and tabs */}
-          <div
-            className={css({
-              position: "sticky",
-              top: 0,
-              zIndex: 5,
-              pb: 2,
-              mb: 2,
-              backdropFilter: "blur(30px) saturate(140%)",
-            })}
-            style={{
-              background: "linear-gradient(rgba(18,15,25,0.78), rgba(18,15,25,0.72))",
-              boxShadow: "0 2px 6px -2px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06)",
-            }}
-          >
-            <div
-              className={css({
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-end",
-                gap: 4,
-                mb: 2,
-              })}
+        {/* Fixed header */}
+        <div
+          className={css({
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: 4,
+            position: "relative",
+            background: "linear-gradient(rgba(18,15,25,0.85), rgba(18,15,25,0.75))",
+            backdropFilter: "blur(28px) saturate(140%)",
+            boxShadow: "0 2px 6px -2px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06)",
+            px: 4,
+            py: 2,
+          })}
+        >
+          <div className={css({ display: "flex", flexDirection: "column", gap: 2 })}>
+            <h2
+              className={css({ fontSize: "xl", fontWeight: "semibold", letterSpacing: "0.5px", m: 0 })}
+              style={{
+                backgroundImage: "linear-gradient(90deg,#7b5df9 0%, #c184ff 50%, #8bd6ff 100%)",
+                WebkitBackgroundClip: "text",
+                color: "transparent",
+              }}
             >
-              <h2
-                className={css({ fontSize: "2xl", fontWeight: "semibold", letterSpacing: "0.5px", m: 0 })}
-                style={{
-                  backgroundImage: "linear-gradient(90deg,#7b5df9 0%, #c184ff 50%, #8bd6ff 100%)",
-                  WebkitBackgroundClip: "text",
-                  color: "transparent",
-                }}
-              >
-                {editMode ? "Edit Die" : "Create Die"}
-              </h2>
-              <div className={css({ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" })}>
-                <DieThumbnail die={previewDie} showOption={null} size={110} />
-              </div>
-            </div>
-            <div className={css({ display: "flex", gap: 2, pt: 1 })} role="tablist" aria-label="Die editor sections">
+              {editMode ? "Edit Die" : "Create Die"}
+            </h2>
+            <div className={css({ display: "flex", gap: 2 })} role="tablist" aria-label="Die editor sections">
               {[
                 { key: "basic", label: "Basics" },
                 { key: "appearance", label: "Appearance" },
@@ -219,8 +226,8 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                       setActiveTab(t.key as typeof activeTab);
                     }}
                     className={css({
-                      px: 4,
-                      py: 2,
+                      px: 3,
+                      py: 1,
                       fontSize: "sm",
                       rounded: "sm",
                       cursor: "pointer",
@@ -233,7 +240,7 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                             borderColor: "rgba(255,255,255,0.35)",
                             background: "rgba(255,255,255,0.18)",
                             boxShadow:
-                              "0 0 0 1px rgba(0,0,0,0.45), 0 0 0 1px inset rgba(255,255,255,0.25), 0 6px 22px -6px rgba(123,93,249,0.8)",
+                              "0 0 0 1px rgba(0,0,0,0.45), 0 0 0 1px inset rgba(255,255,255,0.25), 0 6px 18px -6px rgba(123,93,249,0.8)",
                           }
                         : { borderColor: "rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)" }
                     }
@@ -244,7 +251,15 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
               })}
             </div>
           </div>
+          <div
+            className={css({ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", pr: 2 })}
+          >
+            <DieThumbnail die={previewDie} showOption={null} size={90} />
+          </div>
+        </div>
 
+        {/* Scrollable content */}
+        <div className={css({ flex: 1, overflowY: "auto", p: 8 })}>
           {activeTab === "basic" && (
             <div id="dice-tabpanel-basic" role="tabpanel" aria-labelledby="dice-tab-basic">
               <label className={css({ display: "block", mb: 4 })}>
@@ -478,40 +493,123 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
               </div>
             </div>
           )}
-
-          {errors.length > 0 && (
-            <ul className={css({ color: "red.500", mb: 4 })}>
-              {errors.map((er, i) => (
-                <li key={i}>{er}</li>
-              ))}
-            </ul>
-          )}
-          <div className={css({ display: "flex", gap: 4, mt: 4 })}>
-            <button
-              type="submit"
-              className={css({ px: 5, py: 3, rounded: "sm", fontWeight: "medium" })}
-              style={{
-                background: "linear-gradient(90deg,#7b5df9,#c184ff,#8bd6ff)",
-                color: "#120f19",
-                border: "1px solid rgba(255,255,255,0.25)",
-                boxShadow: "0 0 0 1px rgba(0,0,0,0.5), 0 4px 18px -4px rgba(123,93,249,0.7)",
-              }}
-            >
-              {editMode ? "Update Die" : "Save Die"}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className={css({ px: 5, py: 3, rounded: "sm" })}
-              style={{
-                background: "rgba(255,255,255,0.15)",
-                color: "#ebe5d7",
-                border: "1px solid rgba(255,255,255,0.25)",
-              }}
-            >
-              Cancel
-            </button>
+        </div>
+        {/* Floating error toasts */}
+        {errors.length > 0 && (
+          <div
+            className={css({
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: "calc(var(--footer-height) + 8px)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 3,
+              px: 4,
+              pointerEvents: "none",
+            })}
+            role="alert"
+            aria-live="assertive"
+          >
+            {errors.map((er, i) => (
+              <div
+                key={i}
+                className={css({
+                  backdropFilter: "blur(14px)",
+                  border: "1px solid",
+                  rounded: "md",
+                  px: 4,
+                  py: 3,
+                  fontSize: "sm",
+                  boxShadow: "0 4px 18px -6px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.4)",
+                  position: "relative",
+                  overflow: "hidden",
+                  pointerEvents: "auto",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 3,
+                })}
+                style={{
+                  background: "rgba(255,255,255,0.14)",
+                  borderColor: "rgba(255,255,255,0.25)",
+                  color: "#ffe5e5",
+                }}
+              >
+                <span
+                  className={css({
+                    position: "absolute",
+                    inset: 0,
+                    background: "linear-gradient(120deg, rgba(255,70,70,0.20), rgba(255,255,255,0) 65%)",
+                    pointerEvents: "none",
+                  })}
+                />
+                <span className={css({ position: "relative", flex: 1 })}>{er}</span>
+                <button
+                  type="button"
+                  aria-label="Dismiss error"
+                  onClick={() => {
+                    setErrors((prev) => prev.filter((_, j) => j !== i));
+                  }}
+                  className={css({
+                    position: "relative",
+                    cursor: "pointer",
+                    fontSize: "xs",
+                    px: 2,
+                    py: 1,
+                    rounded: "sm",
+                    border: "1px solid",
+                  })}
+                  style={{
+                    background: "rgba(0,0,0,0.35)",
+                    borderColor: "rgba(255,255,255,0.25)",
+                    color: "#ffffff",
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
           </div>
+        )}
+        {/* Fixed footer */}
+        <div
+          className={css({
+            flexShrink: 0,
+            display: "flex",
+            gap: 4,
+            alignItems: "center",
+            justifyContent: "flex-start",
+            background: "linear-gradient(rgba(18,15,25,0.75), rgba(18,15,25,0.85))",
+            backdropFilter: "blur(28px) saturate(140%)",
+            boxShadow: "0 -2px 6px -2px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06)",
+            px: 4,
+            py: 2,
+          })}
+        >
+          <button
+            type="submit"
+            className={css({ px: 5, py: 2, rounded: "sm", fontWeight: "medium" })}
+            style={{
+              background: "linear-gradient(90deg,#7b5df9,#c184ff,#8bd6ff)",
+              color: "#120f19",
+              border: "1px solid rgba(255,255,255,0.25)",
+              boxShadow: "0 0 0 1px rgba(0,0,0,0.5), 0 4px 14px -4px rgba(123,93,249,0.7)",
+            }}
+          >
+            {editMode ? "Update Die" : "Save Die"}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className={css({ px: 5, py: 2, rounded: "sm" })}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              color: "#ebe5d7",
+              border: "1px solid rgba(255,255,255,0.25)",
+            }}
+          >
+            Cancel
+          </button>
         </div>
       </form>
     </div>

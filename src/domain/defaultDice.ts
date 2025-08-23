@@ -45,8 +45,10 @@ export const DEFAULT_DICE: DieDefinition[] = [
     id: "personas",
     name: "Personas",
     sides: 20,
-    colorHex: "#c184ff",
-    pattern: "solid",
+  // Lightened & more vibrant base color
+  colorHex: "#d8b6ff",
+    // Add subtle gradient and advanced translucent / shimmering appearance
+    pattern: "gradient",
     options: [
       "restless dreamer",
       "world-weary traveler",
@@ -69,6 +71,24 @@ export const DEFAULT_DICE: DieDefinition[] = [
       "space salvager",
       "gravity rebel",
     ],
+    appearance: {
+      roughness: 0.06,
+      metalness: 0.18,
+      reflectivity: 0.88,
+      transmission: 0.92,
+      ior: 1.43,
+      thickness: 1.05,
+      attenuationDistance: 2.3,
+      attenuationColor: "#d8b6ff",
+      opacity: 1,
+      clearcoat: 0.6,
+      clearcoatRoughness: 0.1,
+      sheen: 0.6,
+      sheenColor: "#ffe6ff",
+      sparkleIntensity: 0.55,
+      sparkleCount: 165,
+      sparkleColor: "#ffe6ff",
+    },
   }),
   // 3. Genre Fusions (d20)
   makeDie({
@@ -105,8 +125,8 @@ export const DEFAULT_DICE: DieDefinition[] = [
     id: "devices",
     name: "Devices",
     sides: 8,
-    colorHex: "#6243f3",
-    pattern: "solid",
+    colorHex: "#38bdf8", // cyan / aqua
+    pattern: "gradient",
     options: [
       "alliteration",
       "antithesis",
@@ -117,6 +137,24 @@ export const DEFAULT_DICE: DieDefinition[] = [
       "personification",
       "portmanteau",
     ],
+    appearance: {
+      roughness: 0.12,
+      metalness: 0.35,
+      reflectivity: 0.85,
+      transmission: 0.4,
+      ior: 1.45,
+      thickness: 0.8,
+      attenuationDistance: 1.4,
+      attenuationColor: "#38bdf8",
+      opacity: 1,
+      clearcoat: 0.65,
+      clearcoatRoughness: 0.08,
+      sheen: 0.6,
+      sheenColor: "#8bd6ff",
+      sparkleIntensity: 0.5,
+      sparkleCount: 130,
+      sparkleColor: "#ffffff",
+    },
   }),
 ];
 
