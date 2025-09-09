@@ -1,8 +1,20 @@
-# Roll2Write
+# [Roll2Write](roll2write.chas.ms)
 
-![Home](screenshots/home.png)
-![Edit Die Values](screenshots/editDieValues.png)
-![Edit Die Appearance](screenshots/editDieAppearance.png)
+A songwriting game created in a few days for A.G. Cook's [School of Song](https://schoolofsong.org/) course.
+
+Aesthetic inspired by [A.G.](https://www.instagram.com/newalias/?hl=en) and [Old School Runescape](https://play.runescape.com/oldschool)
+
+Create custom dice to inspire your own songwriting process [just like A. G. does](#ag-cooks-lyric-oracle)!
+
+![Home](images/home.png)
+![Edit Die Values](images/editDieValues.png)
+![Edit Die Appearance](images/editDieAppearance.png)
+
+### A.G. Cook's Lyric Oracle
+
+![A.G.s Lyric Oracle](images/AGsLyricOracle.png)
+
+### About
 
 This project is configured with:
 
