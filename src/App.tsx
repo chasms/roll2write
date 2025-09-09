@@ -2,6 +2,7 @@ import React from "react";
 import { v4 as uuid } from "uuid";
 // Styling migrated fully to SCSS Modules.
 import styles from "./AppLayout.module.scss";
+import githubIcon from "./assets/github.png";
 import { Button } from "./components/Button";
 import { DiceFormModal } from "./components/DiceFormModal";
 import { DieThumbnail } from "./components/DieThumbnail";
@@ -461,6 +462,9 @@ function App() {
           }}
         />
       )}
+      <a className={styles.githubButton} href="https://github.com/chasms/roll2write" target="_blank" rel="noreferrer">
+        <img className={styles.githubImg} src={githubIcon} />
+      </a>
       <div className="r2w-sparkles" />
     </div>
   );
