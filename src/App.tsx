@@ -2,6 +2,7 @@ import React from "react";
 import { v4 as uuid } from "uuid";
 // Styling migrated fully to SCSS Modules.
 import styles from "./AppLayout.module.scss";
+import githubIcon from "./assets/github.png";
 import { Button } from "./components/Button";
 import { DiceFormModal } from "./components/DiceFormModal";
 import { DieThumbnail } from "./components/DieThumbnail";
@@ -118,6 +119,8 @@ function App() {
     ? "Adding rolls auto-saves to current song."
     : "Enter a song name and press Create (or Enter) to start auto-saving rolls.";
 
+  const dieModalOpen = showCreateDie; // derived for clarity
+
   return (
     <div className={`${styles.root} ${fontTheme === "classic" ? "r2w-classic" : "r2w-alt"}`}>
       <header className={styles.header}>
@@ -167,6 +170,18 @@ function App() {
           <div className={styles.songsPanel}>
             {songs.length === 0 && <p style={{ margin: 0, fontSize: "0.875rem" }}>No songs yet.</p>}
             <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+              <li key="__new">
+                <button
+                  className={`${songButtonBaseClass} ${!currentSongId ? songButtonSelectedClass : songButtonUnselectedClass}`}
+                  onClick={() => {
+                    setCurrentSongId(null);
+                    setSongsOpen(false);
+                    setNewSongName("");
+                  }}
+                >
+                  + New Song
+                </button>
+              </li>
               {songs.map((s) => {
                 const selected = s.id === currentSongId;
                 return (
@@ -401,18 +416,20 @@ function App() {
         </div>
       </section>
 
-      {/* Floating create die button */}
-      <button
-        onClick={() => {
-          setEditingDie(null);
-          setShowCreateDie(true);
-        }}
-        className={styles.fab}
-        aria-label="Create Die"
-        title="Create Die"
-      >
-        + 🎲
-      </button>
+      {/* Floating create die button (hidden while modal open) */}
+      {!dieModalOpen && (
+        <button
+          onClick={() => {
+            setEditingDie(null);
+            setShowCreateDie(true);
+          }}
+          className={styles.fab}
+          aria-label="Create Die"
+          title="Create Die"
+        >
+          + 🎲
+        </button>
+      )}
 
       <PastRollsSidebar
         open={showPast}
@@ -445,6 +462,9 @@ function App() {
           }}
         />
       )}
+      <a className={styles.githubButton} href="https://github.com/chasms/roll2write" target="_blank" rel="noreferrer">
+        <img className={styles.githubImg} src={githubIcon} />
+      </a>
       <div className="r2w-sparkles" />
     </div>
   );

@@ -9,6 +9,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lintfix": "eslint . --fix",
+    "stylelint": "stylelint '**/*.scss'",
+    "stylelintfix": "stylelint '**/*.scss' --fix",
     "preview": "vite preview",
     "typecheck": "tsc --project tsconfig.app.json",
     "typewatch": "tsc --project tsconfig.app.json --watch"
@@ -39,6 +41,8 @@
     "globals": "^16.3.0",
     "jiti": "^2.5.1",
     "sass": "^1.90.0",
+    "stylelint": "^16.24.0",
+    "stylelint-config-standard-scss": "^15.0.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2",

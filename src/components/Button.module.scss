@@ -2,6 +2,7 @@
 
 .button {
   @include m.button-reset;
+
   position: relative;
   font-weight: 500;
   border-radius: 4px;
@@ -29,10 +30,11 @@
 .secondary:active { background: #c9b793; }
 
 .ghost { background: transparent; color: #ebe5d7; }
-.ghost:hover { background: rgba(255,255,255,0.08); }
-.ghost:active { background: rgba(255,255,255,0.16); }
+.ghost:hover { background: rgb(255 255 255 / 8%); }
+.ghost:active { background: rgb(255 255 255 / 16%); }
 
 .fae { color: #fff; }
+
 .fae::before {
   content: "";
   position: absolute;
