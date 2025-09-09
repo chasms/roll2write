@@ -118,6 +118,8 @@ function App() {
     ? "Adding rolls auto-saves to current song."
     : "Enter a song name and press Create (or Enter) to start auto-saving rolls.";
 
+  const dieModalOpen = showCreateDie; // derived for clarity
+
   return (
     <div className={`${styles.root} ${fontTheme === "classic" ? "r2w-classic" : "r2w-alt"}`}>
       <header className={styles.header}>
@@ -401,18 +403,20 @@ function App() {
         </div>
       </section>
 
-      {/* Floating create die button */}
-      <button
-        onClick={() => {
-          setEditingDie(null);
-          setShowCreateDie(true);
-        }}
-        className={styles.fab}
-        aria-label="Create Die"
-        title="Create Die"
-      >
-        + 🎲
-      </button>
+      {/* Floating create die button (hidden while modal open) */}
+      {!dieModalOpen && (
+        <button
+          onClick={() => {
+            setEditingDie(null);
+            setShowCreateDie(true);
+          }}
+          className={styles.fab}
+          aria-label="Create Die"
+          title="Create Die"
+        >
+          + 🎲
+        </button>
+      )}
 
       <PastRollsSidebar
         open={showPast}

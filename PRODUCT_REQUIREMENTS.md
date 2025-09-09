@@ -67,6 +67,7 @@ New / revised user stories for the tabletop experience:
 - Die Creation Overlay:
   - Full-screen fixed; backdrop blur (e.g., backdrop-filter: blur(6px)).
   - Centered panel; includes live preview component; Cancel + Save actions; ESC close not required (per initial guidance) but may be added later.
+  - Global floating "+" (create die) FAB is hidden while overlay is open to avoid duplicate entry points / focus traps.
 - Migration / Backward Compatibility:
   - Existing stored dice lacking colorHex/pattern receive defaults colorHex="#888888" and pattern="solid" when loaded.
 - Performance:
