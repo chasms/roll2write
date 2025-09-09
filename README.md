@@ -1,5 +1,9 @@
 # Roll2Write
 
+![Home](screenshots/home.png)
+![Edit Die Values](screenshots/editDieValues.png)
+![Edit Die Appearance](screenshots/editDieAppearance.png)
+
 This project is configured with:
 
 - Vite
