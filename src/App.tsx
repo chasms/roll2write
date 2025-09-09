@@ -169,6 +169,18 @@ function App() {
           <div className={styles.songsPanel}>
             {songs.length === 0 && <p style={{ margin: 0, fontSize: "0.875rem" }}>No songs yet.</p>}
             <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+              <li key="__new">
+                <button
+                  className={`${songButtonBaseClass} ${!currentSongId ? songButtonSelectedClass : songButtonUnselectedClass}`}
+                  onClick={() => {
+                    setCurrentSongId(null);
+                    setSongsOpen(false);
+                    setNewSongName("");
+                  }}
+                >
+                  + New Song
+                </button>
+              </li>
               {songs.map((s) => {
                 const selected = s.id === currentSongId;
                 return (
