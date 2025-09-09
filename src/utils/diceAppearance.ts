@@ -1,5 +1,5 @@
 // Utility functions for deterministic dice appearance (rotation) and pattern backgrounds.
-import { DIE_THUMBNAIL_SIZE } from "../components/styles/DieThumbnail.styles";
+import { DIE_THUMBNAIL_SIZE } from "../components/DieThumbnail";
 import type { DieDefinition, DiePattern } from "../domain/types";
 
 export function hashAngle(id: string): number {

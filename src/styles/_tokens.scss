@@ -1,0 +1,53 @@
+$r2w-spacing-scale: (
+  0: 0,
+  0_5: 0.125rem,
+  1: 0.25rem,
+  1_5: 0.375rem,
+  2: 0.5rem,
+  2_5: 0.625rem,
+  3: 0.75rem,
+  3_5: 0.875rem,
+  4: 1rem,
+  5: 1.25rem,
+  6: 1.5rem,
+  8: 2rem,
+  10: 2.5rem,
+  12: 3rem,
+  16: 4rem
+);
+
+$r2w-colors: (
+  parchment-50: #f5f2ea,
+  parchment-100: #ebe5d7,
+  parchment-200: #dfd2b5,
+  ink-900: #120f19,
+  ink-700: #241d33,
+  arcane-400: #7b5df9,
+  arcane-500: #6243f3,
+  arcane-600: #4a2ed6,
+  crystal-400: #8bd6ff,
+  crystal-500: #5cbfee,
+  crystal-600: #2ea6dc,
+  obsidian-400: #4d5663,
+  obsidian-500: #353c46,
+  obsidian-600: #1f2329,
+  ethereal-400: #d3a8ff,
+  ethereal-500: #c184ff,
+  ethereal-600: #aa50ff,
+  rune-500: #ffc94d,
+  rune-600: #f5b833
+);
+
+// Exported CSS variables for runtime theming
+:root {
+  // accent gradients / glows
+  --r2w-accent: #7b5df9;
+  --r2w-accent-glow: rgba(123,93,249,0.55);
+  --r2w-accent-gradient: linear-gradient(140deg,#7b5df9 0%, #c184ff 45%, #8bd6ff 90%);
+  --r2w-header-gradient: linear-gradient(90deg,#7b5df9 0%, #c184ff 50%, #8bd6ff 100%);
+  --r2w-panel-bg: rgba(255,255,255,0.05);
+  --r2w-panel-border: rgba(255,255,255,0.15);
+  --r2w-button-primary-bg: var(--r2w-accent-gradient);
+  --r2w-button-primary-border: rgba(255,255,255,0.3);
+  --r2w-selection-bg: rgba(0,0,0,0.15);
+}

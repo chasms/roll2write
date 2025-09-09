@@ -1,6 +1,7 @@
 import React from "react";
 import { v4 as uuid } from "uuid";
-import { css } from "../styled-system/css";
+// Styling migrated fully to SCSS Modules.
+import styles from "./AppLayout.module.scss";
 import { Button } from "./components/Button";
 import { DiceFormModal } from "./components/DiceFormModal";
 import { DieThumbnail } from "./components/DieThumbnail";
@@ -108,46 +109,21 @@ function App() {
     });
   }
 
-  // Precomputed classes / strings (avoid dynamic style object values)
-  const songButtonBaseClass = css({
-    textAlign: "left",
-    w: "full",
-    px: 2,
-    py: 1,
-    rounded: "sm",
-    mb: 1,
-    cursor: "pointer",
-  });
-  const songButtonSelectedClass = css({ bg: "green.600", color: "white" });
-  const songButtonUnselectedClass = css({ bg: "gray.200", color: "black" });
-  const selectionAreaClass = css({
-    minH: 40,
-    border: "1px dashed",
-    rounded: "md",
-    p: 4,
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 4,
-    alignItems: "flex-start",
-    position: "relative",
-  });
+  // Class mappings now provided by SCSS module
+  const songButtonBaseClass = styles.songBtn;
+  const songButtonSelectedClass = styles.songBtnSelected;
+  const songButtonUnselectedClass = styles.songBtnUnselected;
+  const selectionAreaClass = styles.selectionArea;
   const songStatusMessage = currentSong
     ? "Adding rolls auto-saves to current song."
     : "Enter a song name and press Create (or Enter) to start auto-saving rolls.";
 
   return (
-    <div
-      className={`${css({ maxW: "1600px", mx: "auto", p: 4, pb: 24 })} ${fontTheme === "classic" ? "r2w-classic" : "r2w-alt"}`}
-    >
-      <header className={css({ mb: 6, position: "relative" })}>
-        <div className={css({ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" })}>
-          <h1
-            className={css({ fontSize: "4xl", fontWeight: "bold", backgroundClip: "text", color: "transparent" })}
-            style={{ backgroundImage: "var(--r2w-header-gradient)", WebkitBackgroundClip: "text" }}
-          >
-            Roll2Write
-          </h1>
-          <div className={css({ position: "relative", display: "flex", gap: 3 })}>
+    <div className={`${styles.root} ${fontTheme === "classic" ? "r2w-classic" : "r2w-alt"}`}>
+      <header className={styles.header}>
+        <div className={styles.flexRow}>
+          <h1 className={styles.title}>Roll2Write</h1>
+          <div style={{ position: "relative", display: "flex", gap: "0.75rem" }}>
             <Button
               className="r2w-fae-btn"
               variant="fae"
@@ -185,31 +161,12 @@ function App() {
               Theme: {fontTheme === "classic" ? "Classic" : "Alt"}
             </Button>
           </div>
-          <div className={css({ flex: 1 })} />
+          <div style={{ flex: 1 }} />
         </div>
         {songsOpen && (
-          <div
-            className={css({
-              position: "absolute",
-              top: "100%",
-              left: 0,
-              mt: 2,
-              rounded: "md",
-              zIndex: 10,
-              minW: 60,
-              maxH: 80,
-              overflowY: "auto",
-              p: 2,
-            })}
-            style={{
-              border: "1px solid rgba(255,255,255,0.15)",
-              background: "rgba(255,255,255,0.05)",
-              backdropFilter: "blur(18px)",
-              color: "#ebe5d7",
-            }}
-          >
-            {songs.length === 0 && <p className={css({ m: 0, fontSize: "sm" })}>No songs yet.</p>}
-            <ul className={css({ listStyle: "none", m: 0, p: 0 })}>
+          <div className={styles.songsPanel}>
+            {songs.length === 0 && <p style={{ margin: 0, fontSize: "0.875rem" }}>No songs yet.</p>}
+            <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
               {songs.map((s) => {
                 const selected = s.id === currentSongId;
                 return (
@@ -229,24 +186,17 @@ function App() {
             </ul>
           </div>
         )}
-        <p className={css({ mt: 4 })}>{songStatusMessage}</p>
+        <p style={{ marginTop: "1rem" }}>{songStatusMessage}</p>
       </header>
 
       {/* Main Interaction Section */}
-      <section
-        className={css({ rounded: "md", p: 5, mb: 12, position: "relative" })}
-        style={{
-          border: "1px solid var(--r2w-panel-border)",
-          background: "var(--r2w-panel-bg)",
-          backdropFilter: "blur(14px)",
-        }}
-      >
-        <div className={css({ display: "flex", flexDirection: { base: "column", lg: "row" }, gap: 8 })}>
+      <section className={styles.mainSection}>
+        <div className={styles.interactionRow}>
           {/* Left: Selection + Rolls */}
-          <div className={css({ flex: 1, minW: 0 })}>
-            <div className={css({ mb: 4 })}>
+          <div className={styles.leftCol}>
+            <div style={{ marginBottom: "1rem" }}>
               {!currentSong && (
-                <div className={css({ display: "flex", gap: 3, flexWrap: "wrap", alignItems: "stretch" })}>
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "stretch" }}>
                   <input
                     placeholder="New song name..."
                     value={newSongName}
@@ -258,8 +208,13 @@ function App() {
                         createSong();
                       }
                     }}
-                    className={css({ px: 3, py: 2, flex: 1, minW: 60 })}
-                    style={{ border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)" }}
+                    style={{
+                      padding: "0.5rem 0.75rem",
+                      flex: 1,
+                      minWidth: "15rem",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      background: "rgba(255,255,255,0.08)",
+                    }}
                   />
                   <Button
                     className="r2w-fae-btn"
@@ -273,11 +228,11 @@ function App() {
                   </Button>
                 </div>
               )}
-              {currentSong && (
-                <h2 className={css({ fontSize: "2xl", fontWeight: "bold", m: 0 })}>{currentSong.name}</h2>
-              )}
+              {currentSong && <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0 }}>{currentSong.name}</h2>}
             </div>
-            <h3 className={css({ mt: 0, mb: 2, fontSize: "lg", fontWeight: "semibold" })}>Selected Dice</h3>
+            <h3 style={{ marginTop: 0, marginBottom: "0.5rem", fontSize: "1.125rem", fontWeight: 600 }}>
+              Selected Dice
+            </h3>
             <div
               onDragOver={(e) => {
                 e.preventDefault();
@@ -287,36 +242,35 @@ function App() {
                 if (dieId) addDieToSelection(dieId);
               }}
               className={selectionAreaClass}
-              style={{ borderColor: "var(--r2w-panel-border)", background: "var(--r2w-selection-bg)" }}
             >
               {selectedDice.length === 0 && (
-                <span className={css({ fontSize: "sm", color: "gray.300" })}>
+                <span style={{ fontSize: "0.875rem", color: "#d1d5db" }}>
                   Drag dice here or click dice to build a set.
                 </span>
               )}
               {selectedDice.map((sel) => {
                 const die = diceById[sel.dieId];
                 return (
-                  <div key={sel.id} className={css({ position: "relative" })}>
+                  <div key={sel.id} style={{ position: "relative" }}>
                     <DieThumbnail die={die} size={72} />
                     <button
                       type="button"
                       onClick={() => {
                         removeSelection(sel.id);
                       }}
-                      className={css({
+                      style={{
                         position: "absolute",
                         top: 0,
                         right: 0,
-                        w: 5,
-                        h: 5,
-                        rounded: "full",
-                        fontSize: "xs",
+                        width: "1.25rem",
+                        height: "1.25rem",
+                        borderRadius: "999px",
+                        fontSize: "0.75rem",
                         lineHeight: 1,
                         cursor: "pointer",
                         color: "white",
-                      })}
-                      style={{ background: "#f87171" }}
+                        background: "#f87171",
+                      }}
                       aria-label="Remove selected die"
                     >
                       ×
@@ -325,7 +279,7 @@ function App() {
                 );
               })}
             </div>
-            <div className={css({ mt: 4, display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center" })}>
+            <div style={{ marginTop: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
               <Button
                 className="r2w-fae-btn"
                 variant="fae"
@@ -345,20 +299,26 @@ function App() {
               >
                 Clear Set
               </Button>
-              {!currentSong && (
-                <span className={css({ fontSize: "sm", color: "gray.300" })}>Enter a song name first.</span>
-              )}
+              {!currentSong && <span style={{ fontSize: "0.875rem", color: "#d1d5db" }}>Enter a song name first.</span>}
             </div>
-            <h3 className={css({ mt: 8, mb: 2, fontSize: "lg", fontWeight: "semibold" })}>Current Song Rolls</h3>
-            <div className={css({ display: "flex", flexWrap: "wrap", gap: 4 })}>
+            <h3 style={{ marginTop: "2rem", marginBottom: "0.5rem", fontSize: "1.125rem", fontWeight: 600 }}>
+              Current Song Rolls
+            </h3>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
               {currentSong?.rollIds.map((id, index) => {
                 const roll = rollsById[id];
                 const die = diceById[roll.dieId];
                 return (
-                  <div key={id} className={css({ position: "relative" })}>
+                  <div key={id} style={{ position: "relative" }}>
                     <div
-                      className={css({ rounded: "sm", px: 3, py: 2, color: "white", fontSize: "sm" })}
-                      style={{ border: "1px solid rgba(255,255,255,0.2)", background: "#4a2ed6" }}
+                      style={{
+                        borderRadius: "4px",
+                        padding: "0.5rem 0.75rem",
+                        color: "white",
+                        fontSize: "0.875rem",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                        background: "#4a2ed6",
+                      }}
                     >
                       {die.name}: {roll.option}
                     </div>
@@ -366,19 +326,19 @@ function App() {
                       onClick={() => {
                         removeRollFromCurrent(index);
                       }}
-                      className={css({
+                      style={{
                         position: "absolute",
                         top: 0,
                         right: 0,
-                        w: 5,
-                        h: 5,
-                        rounded: "full",
+                        width: "1.25rem",
+                        height: "1.25rem",
+                        borderRadius: "999px",
                         color: "white",
-                        fontSize: "xs",
+                        fontSize: "0.75rem",
                         lineHeight: 1,
                         cursor: "pointer",
-                      })}
-                      style={{ background: "#f5b833" }}
+                        background: "#f5b833",
+                      }}
                       title="Remove"
                     >
                       ×
@@ -386,20 +346,15 @@ function App() {
                   </div>
                 );
               })}
-              {!currentSong && <p className={css({ fontSize: "sm" })}>(Enter a song name above.)</p>}
+              {!currentSong && <p style={{ fontSize: "0.875rem" }}>(Enter a song name above.)</p>}
             </div>
           </div>
           {/* Right: Dice Library */}
-          <div className={css({ flex: 1 })}>
-            <h3 className={css({ mt: 0, mb: 2, fontSize: "lg", fontWeight: "semibold" })}>Dice Library</h3>
-            <div
-              className={css({
-                display: "grid",
-                gap: 4,
-                gridTemplateColumns: "repeat(auto-fill,minmax(96px,1fr))",
-                alignItems: "flex-start",
-              })}
-            >
+          <div className={styles.rightCol}>
+            <h3 style={{ marginTop: 0, marginBottom: "0.5rem", fontSize: "1.125rem", fontWeight: 600 }}>
+              Dice Library
+            </h3>
+            <div className={styles.diceLibraryGrid}>
               {dice.map((d) => (
                 <div
                   key={d.id}
@@ -407,7 +362,7 @@ function App() {
                   onDragStart={(e) => {
                     e.dataTransfer.setData("text/plain", d.id);
                   }}
-                  className={css({ position: "relative" })}
+                  style={{ position: "relative" }}
                 >
                   <DieThumbnail
                     die={d}
@@ -418,17 +373,14 @@ function App() {
                   />
                   <button
                     type="button"
-                    className={css({
-                      position: "absolute",
-                      top: 1,
-                      right: 1,
-                      fontSize: "xs",
-                      px: 1,
-                      py: 0.5,
-                      rounded: "sm",
-                      cursor: "pointer",
-                    })}
                     style={{
+                      position: "absolute",
+                      top: "0.25rem",
+                      right: "0.25rem",
+                      fontSize: "0.75rem",
+                      padding: "0.25rem 0.4rem",
+                      borderRadius: "4px",
+                      cursor: "pointer",
                       background: "rgba(0,0,0,0.45)",
                       color: "white",
                       border: "1px solid rgba(255,255,255,0.25)",
@@ -455,22 +407,7 @@ function App() {
           setEditingDie(null);
           setShowCreateDie(true);
         }}
-        className={css({
-          position: "fixed",
-          bottom: 6,
-          right: 6,
-          rounded: "full",
-          p: 4,
-          fontSize: "2xl",
-          cursor: "pointer",
-          boxShadow: "0 6px 22px -6px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.5)",
-          zIndex: 60,
-        })}
-        style={{
-          background: "var(--r2w-button-primary-bg)",
-          color: "white",
-          border: "1px solid var(--r2w-button-primary-border)",
-        }}
+        className={styles.fab}
         aria-label="Create Die"
         title="Create Die"
       >

@@ -5,7 +5,7 @@ This project is configured with:
 - Vite
 - Typescript
 - React
-- PandaCSS
+- SCSS Modules (migrated from PandaCSS)
 - HMR via [SWC](https://swc.rs/)
 - [ESLint rules](./eslint.config.ts)
 - [VSCode settings](./.vscode/settings.json)

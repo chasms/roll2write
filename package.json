@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "prepare": "panda codegen",
+    "prepare": "echo 'no-op'",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -23,8 +23,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
-    "@pandacss/dev": "^1.1.0",
-    "@pandacss/eslint-plugin": "^0.2.12",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react-swc": "^4.0.0",
@@ -40,6 +38,7 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "globals": "^16.3.0",
     "jiti": "^2.5.1",
+    "sass": "^1.90.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2",

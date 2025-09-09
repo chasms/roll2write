@@ -40,6 +40,8 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--r2w-parchment);
+  /* Fluid base font sizing */
+  font-size: clamp(14px, 0.9rem + 0.25vw, 18px);
 }
 
 body {
@@ -58,7 +60,7 @@ body {
 #root {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2.5rem 2rem 6rem;
+  padding: clamp(1.25rem, 3vw, 2.5rem) clamp(.75rem, 2vw, 2rem) 6rem;
   text-align: left;
   position: relative;
 }
@@ -73,6 +75,7 @@ h1, h2, h3, h4 {
 h1 {
   font-weight: 700;
   letter-spacing: 0.5px;
+  font-size: clamp(2rem, 6vw, 3.5rem);
 }
 
 /* Classic font theme (uses earlier decorative stack) */
@@ -135,7 +138,6 @@ a:hover {
   text-shadow: 0 0 4px var(--r2w-accent-glow);
 }
 
-/* Glass panel utility (fallback if Panda recipe not used) */
 .r2w-glass {
   background: rgba(255,255,255,0.05);
   backdrop-filter: blur(18px);
@@ -237,6 +239,16 @@ input[type=range] { accent-color: var(--r2w-accent); }
   0% { opacity: .55; background-position: 0 0, 0 0, 0 0, 0 0; }
   50% { opacity: .9; background-position: 200px 180px, 300px 260px, 250px 240px, 350px 360px; }
   100% { opacity: .55; background-position: 400px 360px, 600px 520px, 500px 480px, 700px 720px; }
+}
+
+/* Respect reduced motion for background sparkle drift */
+@media (prefers-reduced-motion: reduce) {
+  .r2w-sparkles { animation: none; opacity: .6; }
+}
+
+/* Narrow screen optimizations */
+@media (max-width: 640px) {
+  #root { padding-bottom: 5rem; }
 }
 
 /* Parchment texture (classic only overlays) */

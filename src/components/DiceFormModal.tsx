@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { v4 as uuid } from "uuid";
-import { css } from "../../styled-system/css";
 import { APPEARANCE_PRESETS } from "../domain/appearancePresets";
 import type { DieDefinition, DiePattern } from "../domain/types";
 import { DIE_PATTERNS, DIE_SIDE_PRESETS } from "../domain/types";
 import { validateNewDie } from "../domain/validation";
+import styles from "./DiceFormModal.module.scss";
 import { DieThumbnail } from "./DieThumbnail";
 
 interface DiceFormModalProps {
@@ -187,64 +187,17 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
   };
 
   return (
-    <div
-      className={css({
-        position: "fixed",
-        inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 50,
-        p: 6,
-      })}
-      style={{
-        backdropFilter: "blur(14px)",
-        background: "radial-gradient(circle at 20% 30%, rgba(123,93,249,0.25), transparent 70%)",
-      }}
-    >
-      <form
-        onSubmit={handleSave}
-        className={css({
-          rounded: "lg",
-          maxW: "1000px",
-          w: "full",
-          maxH: "90vh",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-          position: "relative",
-        })}
-        style={{
-          background: "rgba(255,255,255,0.06)",
-          color: "#ebe5d7",
-          border: "1px solid rgba(255,255,255,0.2)",
-          boxShadow: "0 0 0 1px rgba(0,0,0,0.4), 0 0 28px -6px rgba(123,93,249,0.7)",
-          backdropFilter: "blur(22px)",
-          // expose a CSS variable for footer height so toast positioning can follow if adjusted
-          // cast to any to allow custom property without extending types
-          ...({ "--footer-height": "56px" } as React.CSSProperties),
-        }}
-      >
+    <div className={styles.overlay}>
+      <form onSubmit={handleSave} className={styles.form}>
         {/* Fixed header */}
-        <div
-          className={css({
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            gap: 4,
-            position: "relative",
-            backdropFilter: "blur(28px) saturate(140%)",
-            boxShadow: "0 2px 6px -2px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06)",
-            px: 4,
-            py: 2,
-          })}
-          style={{ background: "rgba(18,15,25,0.80)" }}
-        >
-          <div className={css({ display: "flex", flexDirection: "column", gap: 2 })}>
+        <div className={styles.header}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             <h2
-              className={css({ fontSize: "xl", fontWeight: "semibold", letterSpacing: "0.5px", m: 0 })}
               style={{
+                margin: 0,
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                letterSpacing: "0.5px",
                 backgroundImage: "linear-gradient(90deg,#7b5df9 0%, #c184ff 50%, #8bd6ff 100%)",
                 WebkitBackgroundClip: "text",
                 color: "transparent",
@@ -252,7 +205,7 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
             >
               {editMode ? "Edit Die" : "Create Die"}
             </h2>
-            <div className={css({ display: "flex", gap: 2 })} role="tablist" aria-label="Die editor sections">
+            <div className={styles.tabs} role="tablist" aria-label="Die editor sections">
               {[
                 { key: "basic", label: "Basics" },
                 { key: "appearance", label: "Appearance" },
@@ -269,25 +222,7 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                     onClick={() => {
                       setActiveTab(t.key as typeof activeTab);
                     }}
-                    className={css({
-                      px: 3,
-                      py: 1,
-                      fontSize: "sm",
-                      rounded: "sm",
-                      cursor: "pointer",
-                      position: "relative",
-                      border: "1px solid",
-                    })}
-                    style={
-                      selected
-                        ? {
-                            borderColor: "rgba(255,255,255,0.35)",
-                            background: "rgba(255,255,255,0.18)",
-                            boxShadow:
-                              "0 0 0 1px rgba(0,0,0,0.45), 0 0 0 1px inset rgba(255,255,255,0.25), 0 6px 18px -6px rgba(123,93,249,0.8)",
-                          }
-                        : { borderColor: "rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)" }
-                    }
+                    className={[styles.tab, selected && styles.tabActive].filter(Boolean).join(" ")}
                   >
                     {t.label}
                   </button>
@@ -296,34 +231,35 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
             </div>
           </div>
           <div
-            className={css({ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", pr: 2 })}
+            style={{
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingRight: "0.5rem",
+            }}
           >
             <DieThumbnail die={previewDie} showOption={null} size={90} />
           </div>
         </div>
 
         {/* Scrollable content */}
-        <div className={css({ flex: 1, overflowY: "auto", p: 8 })}>
+        <div className={styles.content}>
           {activeTab === "basic" && (
             <div id="dice-tabpanel-basic" role="tabpanel" aria-labelledby="dice-tab-basic">
-              <label className={css({ display: "block", mb: 4 })}>
-                <span className={css({ display: "block", mb: 1 })}>Name</span>
+              <label className={styles.labelBlock}>
+                <span className={styles.labelTitle}>Name</span>
                 <input
                   value={name}
                   onChange={(e) => {
                     setName(e.target.value);
                   }}
-                  className={css({ w: "full", border: "1px solid", px: 3, py: 2 })}
+                  className={styles.nameInput}
                 />
               </label>
-              <fieldset
-                className={css({ border: "1px solid", p: 3, rounded: "sm", mb: 6 })}
-                style={{ borderColor: "rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.05)" }}
-              >
-                <legend className={css({ px: 1, fontSize: "sm", letterSpacing: "0.5px", textTransform: "uppercase" })}>
-                  Sides
-                </legend>
-                <div className={css({ display: "flex", flexWrap: "wrap", gap: 2 })}>
+              <fieldset className={`${styles.fieldset} ${styles.dividerSection}`}>
+                <legend className={styles.sidesLegend}>Sides</legend>
+                <div className={styles.presetWrap}>
                   {DIE_SIDE_PRESETS.map((preset) => {
                     const selected = sides === preset;
                     return (
@@ -333,29 +269,7 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                         onClick={() => {
                           updateSides(preset);
                         }}
-                        className={css({
-                          px: 3,
-                          py: 2,
-                          fontSize: "sm",
-                          rounded: "sm",
-                          border: "1px solid",
-                          cursor: "pointer",
-                        })}
-                        style={
-                          selected
-                            ? {
-                                background: "#4a2ed6",
-                                color: "white",
-                                borderColor: "rgba(255,255,255,0.4)",
-                                boxShadow:
-                                  "0 0 0 1px rgba(0,0,0,0.4), 0 0 14px -2px rgba(123,93,249,0.6), inset 0 0 0 1px rgba(255,255,255,0.25)",
-                              }
-                            : {
-                                background: "rgba(255,255,255,0.15)",
-                                color: "#ebe5d7",
-                                borderColor: "rgba(255,255,255,0.25)",
-                              }
-                        }
+                        className={[styles.presetBtn, selected && styles.presetBtnActive].filter(Boolean).join(" ")}
                       >
                         d{preset}
                       </button>
@@ -363,49 +277,29 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                   })}
                 </div>
               </fieldset>
-              <div
-                className={css({ maxH: 64, overflowY: "auto", p: 2, mb: 4 })}
-                style={{ border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.05)" }}
-              >
+              <div className={styles.optionList}>
                 {options.map((opt, i) => (
-                  <label key={i} className={css({ display: "flex", mb: 2, alignItems: "center" })}>
-                    <span className={css({ w: 10 })}>{i + 1}</span>
+                  <label key={i} className={styles.optionRow}>
+                    <span className={styles.optionIndex}>{i + 1}</span>
                     <input
                       value={opt}
                       placeholder={`Option ${(i + 1).toString()}`}
                       onChange={(e) => {
                         updateOption(i, e.target.value);
                       }}
-                      className={css({ flex: 1, border: "1px solid", px: 2, py: 1 })}
+                      className={styles.inputText}
                     />
                   </label>
                 ))}
               </div>
-              <div
-                className={css({ display: "flex", alignItems: "center", gap: 3, mb: 6, flexWrap: "wrap" })}
-                aria-live="polite"
-              >
+              <div className={styles.actionsRow} aria-live="polite">
                 <button
                   type="button"
                   disabled={!name.trim() || generating}
                   onClick={() => {
                     void autoFillOptions();
                   }}
-                  className={css({
-                    px: 3,
-                    py: 2,
-                    rounded: "sm",
-                    fontSize: "sm",
-                    cursor: "pointer",
-                    border: "1px solid",
-                  })}
-                  style={{
-                    background: name.trim() ? "#4a2ed6" : "rgba(255,255,255,0.15)",
-                    color: name.trim() ? "#ffffff" : "#999999",
-                    borderColor: "rgba(255,255,255,0.35)",
-                    opacity: generating ? 0.7 : 1,
-                    cursor: !name.trim() ? "not-allowed" : "pointer",
-                  }}
+                  className={styles.presetBtn}
                   aria-disabled={!name.trim() || generating}
                   aria-busy={generating || undefined}
                 >
@@ -417,43 +311,23 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                   onClick={() => {
                     clearOptions();
                   }}
-                  className={css({
-                    px: 3,
-                    py: 2,
-                    rounded: "sm",
-                    fontSize: "sm",
-                    cursor: "pointer",
-                    border: "1px solid",
-                  })}
-                  style={{
-                    background: options.every((o) => !o.trim()) ? "rgba(255,255,255,0.15)" : "#7b5df9",
-                    color: options.every((o) => !o.trim()) ? "#999999" : "#ffffff",
-                    borderColor: "rgba(255,255,255,0.35)",
-                  }}
+                  className={styles.presetBtn}
                   aria-disabled={options.every((o) => !o.trim())}
                 >
                   Clear Options
                 </button>
-                {!name.trim() && (
-                  <span className={css({ fontSize: "xs", color: "gray.300" })}>
-                    Enter a name first to enable auto-fill.
-                  </span>
-                )}
-                {generationError && (
-                  <span className={css({ fontSize: "xs", color: "red.300" })}>{generationError}</span>
-                )}
-                {generationNotice && (
-                  <span className={css({ fontSize: "xs", color: "green.300" })}>{generationNotice}</span>
-                )}
+                {!name.trim() && <span className={styles.smallNote}>Enter a name first to enable auto-fill.</span>}
+                {generationError && <span className={styles.smallNoteError}>{generationError}</span>}
+                {generationNotice && <span className={styles.smallNoteSuccess}>{generationNotice}</span>}
               </div>
             </div>
           )}
 
           {activeTab === "appearance" && (
             <div id="dice-tabpanel-appearance" role="tabpanel" aria-labelledby="dice-tab-appearance">
-              <div className={css({ mb: 4 })}>
-                <label className={css({ display: "block", mb: 4 })}>
-                  <span className={css({ display: "block", mb: 1 })}>Base Color</span>
+              <div className={styles.dividerSection}>
+                <label className={styles.labelBlock}>
+                  <span className={styles.labelTitle}>Base Color</span>
                   <input
                     type="color"
                     value={colorHex}
@@ -462,32 +336,17 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                       setColorHex(v);
                       setAppearance((prev) => ({ ...prev, attenuationColor: v, sheenColor: v }));
                     }}
-                    className={css({ w: 16, h: 10, p: 0, border: "1px solid" })}
+                    className={styles.inputText}
                   />
                 </label>
-                <fieldset
-                  className={css({ border: "1px solid", p: 3, rounded: "sm", mb: 5 })}
-                  style={{ borderColor: "rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.05)" }}
-                >
-                  <legend
-                    className={css({ px: 1, fontSize: "sm", letterSpacing: "0.5px", textTransform: "uppercase" })}
-                  >
-                    Presets
-                  </legend>
-                  <div className={css({ display: "flex", flexWrap: "wrap", gap: 2 })}>
+                <fieldset className={`${styles.fieldset} ${styles.dividerSection}`}>
+                  <legend className={styles.legend}>Presets</legend>
+                  <div className={styles.presetWrap}>
                     {APPEARANCE_PRESETS.map((p) => (
                       <button
                         key={p.name}
                         type="button"
-                        className={css({
-                          px: 2,
-                          py: 1,
-                          fontSize: "xs",
-                          rounded: "sm",
-                          cursor: "pointer",
-                          border: "1px solid",
-                        })}
-                        style={{ borderColor: "rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.10)" }}
+                        className={styles.presetBtn}
                         onClick={() => {
                           setColorHex(p.colorHex);
                           setPattern(p.pattern ?? pattern);
@@ -500,15 +359,11 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                     ))}
                   </div>
                 </fieldset>
-                <fieldset className={css({ border: "1px solid", p: 3, rounded: "sm", mb: 5 })}>
-                  <legend
-                    className={css({ px: 1, fontSize: "sm", letterSpacing: "0.5px", textTransform: "uppercase" })}
-                  >
-                    Pattern
-                  </legend>
-                  <div className={css({ display: "flex", flexWrap: "wrap", gap: 2 })}>
+                <fieldset className={`${styles.fieldset} ${styles.dividerSection}`}>
+                  <legend className={styles.legend}>Pattern</legend>
+                  <div className={styles.radioRow}>
                     {DIE_PATTERNS.map((p) => (
-                      <label key={p} className={css({ display: "flex", alignItems: "center", gap: 1 })}>
+                      <label key={p} className={styles.radioItem}>
                         <input
                           type="radio"
                           name="pattern"
@@ -523,16 +378,9 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                     ))}
                   </div>
                 </fieldset>
-                <fieldset
-                  className={css({ border: "1px solid", p: 4, rounded: "sm" })}
-                  style={{ borderColor: "rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.05)" }}
-                >
-                  <legend
-                    className={css({ px: 1, fontSize: "sm", letterSpacing: "0.5px", textTransform: "uppercase" })}
-                  >
-                    Material
-                  </legend>
-                  <div className={css({ display: "grid", gap: 2 })}>
+                <fieldset className={styles.fieldset}>
+                  <legend className={styles.legend}>Material</legend>
+                  <div className={styles.gridControls}>
                     {(
                       [
                         ["roughness", 0, 1, 0.01],
@@ -550,7 +398,7 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                         ["sparkleCount", 0, 400, 1],
                       ] as const
                     ).map(([key, min, max, step]) => (
-                      <label key={key} className={css({ display: "flex", flexDirection: "column", fontSize: "xs" })}>
+                      <label key={key} className={styles.rangeLabel}>
                         <span>
                           {key}: {appearance?.[key] ?? 0}
                         </span>
@@ -567,7 +415,7 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                         />
                       </label>
                     ))}
-                    <label className={css({ display: "flex", flexDirection: "column", fontSize: "xs" })}>
+                    <label className={styles.rangeLabel}>
                       attenuationColor
                       <input
                         type="color"
@@ -577,7 +425,7 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                         }}
                       />
                     </label>
-                    <label className={css({ display: "flex", flexDirection: "column", fontSize: "xs" })}>
+                    <label className={styles.rangeLabel}>
                       sheenColor
                       <input
                         type="color"
@@ -587,7 +435,7 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
                         }}
                       />
                     </label>
-                    <label className={css({ display: "flex", flexDirection: "column", fontSize: "xs" })}>
+                    <label className={styles.rangeLabel}>
                       sparkleColor
                       <input
                         type="color"
@@ -605,76 +453,25 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
         </div>
         {/* Floating error toasts */}
         {errors.length > 0 && (
-          <div
-            className={css({
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: "calc(var(--footer-height) + 8px)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 3,
-              px: 4,
-              pointerEvents: "none",
-            })}
-            role="alert"
-            aria-live="assertive"
-          >
+          <div className={styles.toastLayer} role="alert" aria-live="assertive">
             {errors.map((er, i) => (
-              <div
-                key={i}
-                className={css({
-                  backdropFilter: "blur(14px)",
-                  border: "1px solid",
-                  rounded: "md",
-                  px: 4,
-                  py: 3,
-                  fontSize: "sm",
-                  boxShadow: "0 4px 18px -6px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.4)",
-                  position: "relative",
-                  overflow: "hidden",
-                  pointerEvents: "auto",
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 3,
-                })}
-                style={{
-                  background: "rgba(255,255,255,0.14)",
-                  borderColor: "rgba(255,255,255,0.25)",
-                  color: "#ffe5e5",
-                }}
-              >
+              <div key={i} className={styles.toast}>
                 <span
-                  className={css({
+                  style={{
                     position: "absolute",
                     inset: 0,
                     pointerEvents: "none",
-                  })}
-                  style={{
                     background: "linear-gradient(120deg, rgba(255,70,70,0.20), rgba(255,255,255,0) 65%)",
                   }}
                 />
-                <span className={css({ position: "relative", flex: 1 })}>{er}</span>
+                <span style={{ position: "relative", flex: 1 }}>{er}</span>
                 <button
                   type="button"
                   aria-label="Dismiss error"
                   onClick={() => {
                     setErrors((prev) => prev.filter((_, j) => j !== i));
                   }}
-                  className={css({
-                    position: "relative",
-                    cursor: "pointer",
-                    fontSize: "xs",
-                    px: 2,
-                    py: 1,
-                    rounded: "sm",
-                    border: "1px solid",
-                  })}
-                  style={{
-                    background: "rgba(0,0,0,0.35)",
-                    borderColor: "rgba(255,255,255,0.25)",
-                    color: "#ffffff",
-                  }}
+                  className={styles.toastDismiss}
                 >
                   ✕
                 </button>
@@ -683,42 +480,11 @@ export function DiceFormModal({ existingNames, onClose, onCreated, onUpdated, di
           </div>
         )}
         {/* Fixed footer */}
-        <div
-          className={css({
-            flexShrink: 0,
-            display: "flex",
-            gap: 4,
-            alignItems: "center",
-            justifyContent: "flex-start",
-            backdropFilter: "blur(28px) saturate(140%)",
-            boxShadow: "0 -2px 6px -2px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06)",
-            px: 4,
-            py: 2,
-          })}
-          style={{ background: "rgba(18,15,25,0.80)" }}
-        >
-          <button
-            type="submit"
-            className={css({ px: 5, py: 2, rounded: "sm", fontWeight: "medium" })}
-            style={{
-              background: "linear-gradient(90deg,#7b5df9,#c184ff,#8bd6ff)",
-              color: "#120f19",
-              border: "1px solid rgba(255,255,255,0.25)",
-              boxShadow: "0 0 0 1px rgba(0,0,0,0.5), 0 4px 14px -4px rgba(123,93,249,0.7)",
-            }}
-          >
+        <div className={styles.footer}>
+          <button type="submit" className={styles.saveBtn}>
             {editMode ? "Update Die" : "Save Die"}
           </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className={css({ px: 5, py: 2, rounded: "sm" })}
-            style={{
-              background: "rgba(255,255,255,0.15)",
-              color: "#ebe5d7",
-              border: "1px solid rgba(255,255,255,0.25)",
-            }}
-          >
+          <button type="button" onClick={onClose} className={styles.cancelBtn}>
             Cancel
           </button>
         </div>

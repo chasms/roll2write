@@ -55,7 +55,7 @@ New / revised user stories for the tabletop experience:
 - Dice Drawer:
   - Visual style evokes wood: layered linear / repeating gradients + subtle noise (CSS only, no external images initially).
   - Contains grid / horizontal scroll list of dice thumbnails plus terminal "Create Die" button.
-  - Drawer states: open, collapsed; animation purely CSS (height transition) using Panda variants.
+  - Drawer states: open, collapsed; animation purely CSS (height transition).
 - Past Rolls Drawer:
   - Shows recent N (e.g., 50) rolls with ability to scroll; selecting one adds to draft (no checkbox selection needed—single tap adds).
   - Does not remove from history; duplicates allowed in a song.
