@@ -50,4 +50,6 @@ $r2w-colors: (
   --r2w-button-primary-bg: var(--r2w-accent-gradient);
   --r2w-button-primary-border: rgba(255,255,255,0.3);
   --r2w-selection-bg: rgba(0,0,0,0.15);
+  --r2w-bg: radial-gradient(circle at 30% 30%, #241d33 0%, #120f19 55%, #0b0810 100%);
+  --r2w-noise: repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 4px);
 }

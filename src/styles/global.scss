@@ -4,7 +4,10 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: radial-gradient(circle at 30% 30%, #241d33 0%, #120f19 55%, #0b0810 100%);
+  background:  radial-gradient(circle at 70% 70%, rgba(170,80,255,0.12), transparent 60%),
+    radial-gradient(circle at 15% 85%, rgba(139,214,255,0.10), transparent 65%),
+    var(--r2w-noise),
+    var(--r2w-bg);
   color: #ebe5d7;
   font-family: "MedievalSharp", Georgia, serif;
 }
