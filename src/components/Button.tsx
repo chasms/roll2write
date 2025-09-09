@@ -1,6 +1,5 @@
 import React from "react";
-import { cx } from "../../styled-system/css";
-import { buttonRecipe } from "./styles/Button.styles";
+import styles from "./Button.module.scss";
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   width?: number | string;
   height?: number | string;
@@ -37,7 +36,7 @@ export const Button: React.FC<ButtonProps> = ({
       : undefined;
   return (
     <button
-      className={cx(buttonRecipe({ variant }), className)}
+      className={[styles.button, styles[variant], className].filter(Boolean).join(" ")}
       disabled={disabled ?? busy}
       aria-busy={busy ? true : undefined}
       style={resolvedStyle}

@@ -1,5 +1,4 @@
 import js from "@eslint/js";
-import panda from "@pandacss/eslint-plugin";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 import importPlugin from "eslint-plugin-import";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
@@ -11,21 +10,9 @@ import { globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-const pandaPluginRecommended = {
-  ignores: ["**/*.d.ts", "styled-system"],
-  plugins: {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    "@pandacss": panda,
-  },
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  rules: {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    ...panda.configs.recommended.rules,
-  },
-};
 
 export default tseslint.config([
-  globalIgnores(["dist", "styled-system/**/*", "node_modules/**/*"]),
+  globalIgnores(["dist", "node_modules/**/*"]),
   {
     files: ["**/*.{js,jsx,mjs,cjs,mts,cts,ts,tsx}"],
     extends: [js.configs.recommended],
@@ -47,7 +34,6 @@ export default tseslint.config([
       reactHooks.configs["recommended-latest"],
       reactRefresh.configs.vite,
       pluginReact.configs.flat.recommended,
-      pandaPluginRecommended,
       eslintPluginPrettierRecommended,
       eslintConfigPrettier,
     ],

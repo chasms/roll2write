@@ -3,11 +3,9 @@ import { Canvas } from "@react-three/fiber";
 import type { DieDefinition } from "../domain/types";
 import { diePreviewSvgProps } from "../utils/diceAppearance";
 import { DieMesh } from "./DieMesh";
-import {
-  DIE_THUMBNAIL_SIZE,
-  dieThumbnailContentOverlayClass,
-  dieThumbnailOuterClass,
-} from "./styles/DieThumbnail.styles.ts";
+import styles from "./DieThumbnail.module.scss";
+
+export const DIE_THUMBNAIL_SIZE = 60; // default size constant
 
 export interface DieThumbnailProps {
   die: DieDefinition;
@@ -21,7 +19,7 @@ export function DieThumbnail({ die, onClick, showOption, size }: DieThumbnailPro
   const resolvedSize = size ?? DIE_THUMBNAIL_SIZE;
   return (
     <div
-      className={dieThumbnailOuterClass({ interactive: Boolean(onClick) })}
+      className={`${styles.outer} ${onClick ? styles.interactive : ""}`}
       style={{ width: resolvedSize, height: "auto" }}
       onClick={onClick}
       aria-label={die.name + " (" + String(die.sides) + " sides)"}
@@ -42,7 +40,7 @@ export function DieThumbnail({ die, onClick, showOption, size }: DieThumbnailPro
           appearance={die.appearance}
         />
       </Canvas>
-      <div className={dieThumbnailContentOverlayClass}>{showOption ?? die.name}</div>
+      <div className={styles.contentOverlay}>{showOption ?? die.name}</div>
     </div>
   );
 }

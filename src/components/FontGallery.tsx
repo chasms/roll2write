@@ -1,6 +1,6 @@
 import React from "react";
-import { css } from "../../styled-system/css";
 import { Button } from "./Button";
+import styles from "./FontGallery.module.scss";
 
 interface FontDef {
   name: string; // CSS font-family value (as used after load)
@@ -74,21 +74,9 @@ export function FontGallery(props: { onClose(): void }) {
   }, []);
 
   return (
-    <div
-      className={css({
-        position: "fixed",
-        inset: 0,
-        zIndex: 90,
-        overflowY: "auto",
-        p: 6,
-        display: "flex",
-        flexDirection: "column",
-        gap: 6,
-      })}
-      style={{ background: "rgba(12,10,18,0.9)", backdropFilter: "blur(14px)" }}
-    >
-      <div className={css({ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 })}>
-        <h1 className={css({ m: 0, fontSize: "3xl" })}>Font Gallery</h1>
+    <div className={styles.overlay}>
+      <div className={styles.headerRow}>
+        <h1>Font Gallery</h1>
         <Button
           variant="primary"
           onClick={() => {
@@ -98,43 +86,28 @@ export function FontGallery(props: { onClose(): void }) {
           Close
         </Button>
       </div>
-      <p className={css({ fontSize: "sm", maxW: "3xl", lineHeight: 1.4 })}>
+      <p className={styles.paraSm}>
         Preview of candidate medieval / calligraphic fonts. Use this to decide hierarchy assignments. Each block shows
         name, role hint, pangram, numerals & symbols, and an italic / weight sample if available.
       </p>
-      <div className={css({ display: "grid", gap: 5, gridTemplateColumns: { base: "1fr", lg: "1fr 1fr" } })}>
+      <div className={styles.grid}>
         {FONT_DEFS.map((f) => {
           const familyStack = `'${f.name}', 'Cormorant SC', 'Cinzel Decorative', Georgia, serif`;
           return (
-            <div
-              key={f.name}
-              className={css({ p: 4, rounded: "md" })}
-              style={{
-                border: "1px solid rgba(255,255,255,0.15)",
-                background: "rgba(255,255,255,0.05)",
-                boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 4px 18px -6px rgba(0,0,0,0.6)",
-              }}
-            >
-              <div className={css({ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 })}>
+            <div key={f.name} className={styles.sampleCard}>
+              <div className={styles.headerRow}>
                 <strong style={{ fontFamily: familyStack, fontSize: "1.4rem", letterSpacing: "0.5px" }}>
                   {f.name}
                 </strong>
-                <span className={css({ fontSize: "xs", color: "gray.300" })}>{f.roleHint}</span>
+                <span className={styles.roleHint}>{f.roleHint}</span>
               </div>
               <div style={{ fontFamily: familyStack }}>
-                <p className={css({ m: 0, fontSize: "lg", lineHeight: 1.2 })}>
-                  The Quick Brown Fox Jumps Over 13 Sphinx Wizards.
-                </p>
-                <p className={css({ m: 0, mt: 2, fontSize: "sm", lineHeight: 1.25 })}>
-                  0123456789 — !?&;:., “Quotes” (Parentheses) / * # %
-                </p>
-                <p
-                  className={css({ m: 0, mt: 2, fontSize: "sm", lineHeight: 1.3, opacity: 0.85 })}
-                  style={{ fontStyle: "italic" }}
-                >
+                <p className={styles.para}>The Quick Brown Fox Jumps Over 13 Sphinx Wizards.</p>
+                <p className={styles.paraSm}>0123456789 — !?&;:., “Quotes” (Parentheses) / * # %</p>
+                <p className={styles.paraSm} style={{ fontStyle: "italic", opacity: 0.85 }}>
                   Italic sample: Arcane melodies breathe life into forgotten runes.
                 </p>
-                <p className={css({ m: 0, mt: 2, fontSize: "sm", lineHeight: 1.3, fontWeight: "bold", opacity: 0.9 })}>
+                <p className={styles.paraSm} style={{ fontWeight: "bold", opacity: 0.9 }}>
                   Bold sample: Arcane melodies breathe life into forgotten runes.
                 </p>
               </div>
