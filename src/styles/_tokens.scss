@@ -15,7 +15,6 @@ $r2w-spacing-scale: (
   12: 3rem,
   16: 4rem
 );
-
 $r2w-colors: (
   parchment-50: #f5f2ea,
   parchment-100: #ebe5d7,
@@ -42,14 +41,14 @@ $r2w-colors: (
 :root {
   // accent gradients / glows
   --r2w-accent: #7b5df9;
-  --r2w-accent-glow: rgba(123,93,249,0.55);
+  --r2w-accent-glow: rgb(123 93 249 / 55%);
   --r2w-accent-gradient: linear-gradient(140deg,#7b5df9 0%, #c184ff 45%, #8bd6ff 90%);
   --r2w-header-gradient: linear-gradient(90deg,#7b5df9 0%, #c184ff 50%, #8bd6ff 100%);
-  --r2w-panel-bg: rgba(255,255,255,0.05);
-  --r2w-panel-border: rgba(255,255,255,0.15);
+  --r2w-panel-bg: rgb(255 255 255 / 5%);
+  --r2w-panel-border: rgb(255 255 255 / 15%);
   --r2w-button-primary-bg: var(--r2w-accent-gradient);
-  --r2w-button-primary-border: rgba(255,255,255,0.3);
-  --r2w-selection-bg: rgba(0,0,0,0.15);
+  --r2w-button-primary-border: rgb(255 255 255 / 30%);
+  --r2w-selection-bg: rgb(0 0 0 / 15%);
   --r2w-bg: radial-gradient(circle at 30% 30%, #241d33 0%, #120f19 55%, #0b0810 100%);
-  --r2w-noise: repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 4px);
+  --r2w-noise: repeating-linear-gradient(45deg, rgb(255 255 255 / 4%) 0 2px, transparent 2px 4px);
 }
