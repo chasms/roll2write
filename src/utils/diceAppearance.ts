@@ -12,7 +12,10 @@ export function hashAngle(id: string): number {
   return Math.round(fullAngle / 15) * 15; // snap to 15-deg increments
 }
 
-export function polygonPoints(sides: number, radius = DIE_THUMBNAIL_SIZE): string {
+export function polygonPoints(
+  sides: number,
+  radius = DIE_THUMBNAIL_SIZE
+): string {
   const limited = Math.min(Math.max(sides, 3), radius);
   const points: string[] = [];
   const angleStep = (Math.PI * 2) / limited;
@@ -26,7 +29,10 @@ export function polygonPoints(sides: number, radius = DIE_THUMBNAIL_SIZE): strin
   return points.join(" ");
 }
 
-export function patternBackground(pattern: DiePattern, colorHex: string): string {
+export function patternBackground(
+  pattern: DiePattern,
+  colorHex: string
+): string {
   const lighten = tint(colorHex, 0.35);
   const darken = tint(colorHex, -0.35);
   switch (pattern) {
@@ -73,7 +79,9 @@ function clamp(n: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, n));
 }
 
-export function diePreviewSvgProps(die: Pick<DieDefinition, "sides" | "id" | "colorHex" | "pattern">) {
+export function diePreviewSvgProps(
+  die: Pick<DieDefinition, "sides" | "id" | "colorHex" | "pattern">
+) {
   const angle = hashAngle(die.id);
   const points = polygonPoints(Math.min(die.sides, 24));
   return { angle, points };

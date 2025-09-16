@@ -4,15 +4,22 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background:  radial-gradient(circle at 70% 70%, rgba(170,80,255,0.12), transparent 60%),
-    radial-gradient(circle at 15% 85%, rgba(139,214,255,0.10), transparent 65%),
-    var(--r2w-noise),
-    var(--r2w-bg);
+  background:
+    radial-gradient(circle at 70% 70%, rgb(170 80 255 / 12%), transparent 60%),
+    radial-gradient(circle at 15% 85%, rgb(139 214 255 / 10%), transparent 65%),
+    var(--r2w-noise), var(--r2w-bg);
   color: #ebe5d7;
-  font-family: "MedievalSharp", Georgia, serif;
+  font-family: MedievalSharp, Georgia, serif;
 }
 
-.r2w-sparkles { position: fixed; inset: 0; pointer-events: none; z-index: 5; overflow: hidden; }
+.r2w-sparkles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
 .r2w-sparkles::before,
 .r2w-sparkles::after {
   content: "";
@@ -22,120 +29,141 @@ body {
   width: 200%;
   height: 200%;
   background-repeat: repeat;
-  background-size: 800px 800px, 600px 600px;
+  background-size:
+    800px 800px,
+    600px 600px;
   mix-blend-mode: screen;
   pointer-events: none;
-  animation: r2wSnowDrift 60s linear infinite;
+  animation: r2w-snow-drift 60s linear infinite;
   opacity: 0.35;
 }
+
 /* Layer 1: tiny distant particles */
- .r2w-sparkles::before {
+.r2w-sparkles::before {
   background-image:
-    radial-gradient(circle at 10% 20%, rgba(255,255,255,0.55) 0 1px, transparent 1px),
-    radial-gradient(circle at 30% 80%, rgba(255,255,255,0.35) 0 1.2px, transparent 1.2px),
-    radial-gradient(circle at 70% 50%, rgba(255,255,255,0.5) 0 1px, transparent 1px),
-    radial-gradient(circle at 85% 15%, rgba(255,255,255,0.4) 0 1px, transparent 1px),
-    radial-gradient(circle at 55% 60%, rgba(255,255,255,0.45) 0 1px, transparent 1px);
+    radial-gradient(
+      circle at 10% 20%,
+      rgb(255 255 255 / 55%) 0 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 30% 80%,
+      rgb(255 255 255 / 35%) 0 1.2px,
+      transparent 1.2px
+    ),
+    radial-gradient(
+      circle at 70% 50%,
+      rgb(255 255 255 / 50%) 0 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 85% 15%,
+      rgb(255 255 255 / 40%) 0 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 55% 60%,
+      rgb(255 255 255 / 45%) 0 1px,
+      transparent 1px
+    );
   filter: blur(0.5px);
   animation-duration: 60s; /* accelerated drift */
 }
+
 /* Layer 2: closer flakes with subtle hue shimmer */
- .r2w-sparkles::after {
+.r2w-sparkles::after {
   background-image:
-    radial-gradient(circle at 5% 10%, rgba(255,255,255,0.8) 0 1.6px, transparent 1.6px),
-    radial-gradient(circle at 25% 90%, rgba(195,135,255,0.85) 0 1.8px, transparent 1.8px),
-    radial-gradient(circle at 62% 40%, rgba(139,214,255,0.75) 0 1.6px, transparent 1.6px),
-    radial-gradient(circle at 90% 70%, rgba(255,255,255,0.9) 0 2px, transparent 2px),
-    radial-gradient(circle at 40% 30%, rgba(255,220,160,0.55) 0 1.4px, transparent 1.4px),
-    radial-gradient(circle at 75% 85%, rgba(255,255,255,0.75) 0 1.6px, transparent 1.6px);
-  filter: drop-shadow(0 0 4px rgba(255,255,255,0.35));
-  animation: r2wSnowDrift 40s linear infinite, r2wSnowTwinkle 4.5s ease-in-out infinite alternate; /* accelerated drift + twinkle */
+    radial-gradient(
+      circle at 5% 10%,
+      rgb(255 255 255 / 80%) 0 1.6px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 25% 90%,
+      rgb(195 135 255 / 85%) 0 1.8px,
+      transparent 1.8px
+    ),
+    radial-gradient(
+      circle at 62% 40%,
+      rgb(139 214 255 / 75%) 0 1.6px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 90% 70%,
+      rgb(255 255 255 / 90%) 0 2px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 40% 30%,
+      rgb(255 220 160 / 55%) 0 1.4px,
+      transparent 1.4px
+    ),
+    radial-gradient(
+      circle at 75% 85%,
+      rgb(255 255 255 / 75%) 0 1.6px,
+      transparent 1.6px
+    );
+  filter: drop-shadow(0 0 4px rgb(255 255 255 / 35%));
+  animation:
+    r2w-snow-drift 40s linear infinite,
+    r2w-snow-twinkle 4.5s ease-in-out infinite alternate; /* accelerated drift + twinkle */
+
   opacity: 0.55;
 }
 
-@keyframes r2wSnowDrift {
-  0% { transform: translate3d(0,0,0); }
-  100% { transform: translate3d(25%, 50%, 0); }
-}
-@keyframes r2wSnowTwinkle {
-  0% { filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)); }
-  50% { filter: drop-shadow(0 0 6px rgba(255,255,255,0.55)); }
-  100% { filter: drop-shadow(0 0 3px rgba(255,255,255,0.35)); }
+@keyframes r2w-snow-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(25%, 50%, 0);
+  }
 }
 
-/* THEME PALETTES (migrated from legacy index.css) */
-/* Classic theme overrides */
-.r2w-classic {
-  font-family: "Cormorant SC", "Cinzel Decorative", "Uncial Antiqua", "MedievalSharp", Georgia, serif;
-  --r2w-accent: #d6b657;
-  --r2w-accent-glow: rgba(214,182,87,0.55);
-  --r2w-accent-gradient: linear-gradient(135deg,#583c9e 0%, #d6b657 28%, #f2c979 55%, #ffdfb0 82%, #b487ff 100%);
-  --r2w-header-gradient: linear-gradient(95deg,#ffdfb0 0%, #d6b657 40%, #b487ff 100%);
-  --r2w-panel-bg: rgba(46,35,18,0.35);
-  --r2w-panel-border: rgba(255,222,179,0.25);
-  --r2w-button-primary-bg: linear-gradient(130deg,#b487ff 0%, #d6b657 55%, #ffdfb0 100%);
-  --r2w-button-primary-border: rgba(255,222,179,0.5);
-  --r2w-selection-bg: rgba(55,38,20,0.35);
-  --r2w-btn-bg: #5d3c12;
-  --r2w-btn-bg-hover: #7a5018;
-  --r2w-btn-bg-active: #4a2c0d;
-  --r2w-btn-text: #ffefcc;
-  --r2w-btn-outline: rgba(255,239,204,0.4);
-}
-.r2w-classic h1, .r2w-classic h2, .r2w-classic h3, .r2w-classic h4 {
-  font-family: "Uncial Antiqua", "Cinzel Decorative", "Cormorant SC", "MedievalSharp", Georgia, serif;
-}
+@keyframes r2w-snow-twinkle {
+  0% {
+    filter: drop-shadow(0 0 2px rgb(255 255 255 / 25%));
+  }
 
-/* Alt theme explicitly reasserts default variables to support toggling */
-.r2w-alt {
-  font-family: "MedievalSharp", "Almendra Display", Georgia, serif;
-  --r2w-accent: #7b5df9;
-  --r2w-accent-glow: rgba(123,93,249,0.55);
-  --r2w-accent-gradient: linear-gradient(140deg,#7b5df9 0%, #c184ff 45%, #8bd6ff 90%);
-  --r2w-header-gradient: linear-gradient(90deg,#7b5df9 0%, #c184ff 50%, #8bd6ff 100%);
-  --r2w-panel-bg: rgba(255,255,255,0.05);
-  --r2w-panel-border: rgba(255,255,255,0.15);
-  --r2w-button-primary-bg: var(--r2w-accent-gradient);
-  --r2w-button-primary-border: rgba(255,255,255,0.3);
-  --r2w-selection-bg: rgba(0,0,0,0.15);
-  --r2w-btn-bg: #5b32c9;
-  --r2w-btn-bg-hover: #7242f0;
-  --r2w-btn-bg-active: #462497;
-  --r2w-btn-text: #ffffff;
-  --r2w-btn-outline: rgba(255,255,255,0.25);
-}
-.r2w-alt h1, .r2w-alt h2, .r2w-alt h3, .r2w-alt h4 {
-  font-family: "Almendra Display", "MedievalSharp", Georgia, serif;
-}
+  50% {
+    filter: drop-shadow(0 0 6px rgb(255 255 255 / 55%));
+  }
 
-/* Fae button skin (previous utility class) */
-.r2w-fae-btn {
-  position: relative;
-  background: var(--r2w-btn-bg, #5b32c9);
-  color: var(--r2w-btn-text, #fff) !important;
-  border: 1px solid var(--r2w-btn-outline, rgba(255,255,255,0.28));
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.35), 0 2px 6px -1px rgba(0,0,0,0.6), 0 0 0 1px inset rgba(255,255,255,0.08);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.55);
-  letter-spacing: 0.5px;
-  overflow: hidden;
-  transition: background 140ms ease, box-shadow 220ms ease, transform 140ms ease;
+  100% {
+    filter: drop-shadow(0 0 3px rgb(255 255 255 / 35%));
+  }
 }
-.r2w-fae-btn:before, .r2w-fae-btn:after { content: ""; position: absolute; inset: 0; pointer-events: none; }
-.r2w-fae-btn:before { background: linear-gradient(130deg,rgba(255,255,255,0.18),transparent 40%,rgba(255,255,255,0.12) 60%,transparent 85%); mix-blend-mode: overlay; opacity: 0.6; transition: opacity .25s; }
-.r2w-fae-btn:after { background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='40' viewBox='0 0 120 40'><text x='4' y='18' font-size='14' fill='%23d6b657' font-family='Uncial Antiqua'>ᚠᛞᚨᚱᚲ</text><text x='60' y='34' font-size='14' fill='%23c184ff' font-family='Uncial Antiqua'>ᛒᚱᛟᚨᛁᚾ</text></svg>"); background-size: 140% 140%; background-repeat: no-repeat; mix-blend-mode: soft-light; opacity: .25; filter: blur(.4px); transition: opacity .3s; }
-.r2w-fae-btn:hover { background: var(--r2w-btn-bg-hover, #6f3fff); }
-.r2w-fae-btn:hover:before { opacity: .9; }
-.r2w-fae-btn:active { background: var(--r2w-btn-bg-active, #4a27a9); transform: translateY(1px) scale(0.985); }
-.r2w-fae-btn:focus-visible { outline: 2px solid var(--r2w-btn-text, #fff); outline-offset: 2px; }
-.r2w-fae-btn:disabled { opacity: .55; cursor: not-allowed; }
 
 /* Basic element refinements retained */
-input, button, textarea, select { font-family: inherit; }
-input[type="text"], input[type="color"], input[type="range"], input:not([type]) {
-  background: rgba(255,255,255,0.08);
-  color: #ebe5d7;
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 0 0 1px inset rgba(255,255,255,0.05);
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
 }
-input[type="text"]:focus, input[type="color"]:focus, input[type="range"]:focus { outline: 1px solid var(--r2w-accent); box-shadow: 0 0 0 1px var(--r2w-accent), 0 0 8px -1px var(--r2w-accent-glow); }
-input[type=range] { accent-color: var(--r2w-accent); }
+
+input[type="text"],
+input[type="color"],
+input[type="range"],
+input:not([type]) {
+  background: rgb(255 255 255 / 8%);
+  color: #ebe5d7;
+  border: 1px solid rgb(255 255 255 / 20%);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 40%),
+    0 0 0 1px inset rgb(255 255 255 / 5%);
+}
+
+input[type="range"] {
+  accent-color: var(--r2w-accent);
+}
+
+input[type="text"]:focus,
+input[type="color"]:focus,
+input[type="range"]:focus {
+  outline: 1px solid var(--r2w-accent);
+  box-shadow:
+    0 0 0 1px var(--r2w-accent),
+    0 0 8px -1px var(--r2w-accent-glow);
+}

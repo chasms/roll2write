@@ -12,7 +12,10 @@ function emit() {
 let lastRollsSnapshot: RollResult[] = [];
 function getRollsSnapshot(): RollResult[] {
   const fresh = repo.getRolls();
-  if (lastRollsSnapshot.length === fresh.length && lastRollsSnapshot.every((item, index) => item === fresh[index])) {
+  if (
+    lastRollsSnapshot.length === fresh.length &&
+    lastRollsSnapshot.every((item, index) => item === fresh[index])
+  ) {
     return lastRollsSnapshot;
   }
   lastRollsSnapshot = fresh;
@@ -24,7 +27,11 @@ export function useRolls() {
     listeners.add(listener);
     return () => listeners.delete(listener);
   }, []);
-  const rolls = useSyncExternalStore(subscribe, getRollsSnapshot, getRollsSnapshot);
+  const rolls = useSyncExternalStore(
+    subscribe,
+    getRollsSnapshot,
+    getRollsSnapshot
+  );
   const addRoll = useCallback((roll: RollResult) => {
     repo.addRoll(roll);
     emit();

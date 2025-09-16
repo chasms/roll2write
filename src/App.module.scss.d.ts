@@ -1,0 +1,23 @@
+declare const classNames: {
+  readonly root: "root";
+  readonly header: "header";
+  readonly "flex-row": "flex-row";
+  readonly title: "title";
+  readonly "songs-panel": "songs-panel";
+  readonly "song-button": "song-button";
+  readonly "song-button-selected": "song-button-selected";
+  readonly "song-button-unselected": "song-button-unselected";
+  readonly "selection-area": "selection-area";
+  readonly "main-section": "main-section";
+  readonly "interaction-row": "interaction-row";
+  readonly "left-col": "left-col";
+  readonly "right-col": "right-col";
+  readonly "dice-library-grid": "dice-library-grid";
+  readonly fab: "fab";
+  readonly "github-button": "github-button";
+  readonly "github-image": "github-image";
+  readonly "r2w-fae-btn": "r2w-fae-btn";
+  readonly "r2w-classic": "r2w-classic";
+  readonly "r2w-alt": "r2w-alt";
+};
+export = classNames;

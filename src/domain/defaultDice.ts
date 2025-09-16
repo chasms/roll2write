@@ -4,7 +4,9 @@ import type { DieDefinition } from "./types";
 const nowIso = () => new Date().toISOString();
 
 // Generic factory so all defaults share consistent timestamps except id uniqueness.
-function makeDie(partial: Omit<DieDefinition, "createdAt" | "updatedAt">): DieDefinition {
+function makeDie(
+  partial: Omit<DieDefinition, "createdAt" | "updatedAt">
+): DieDefinition {
   const ts = nowIso();
   return { ...partial, createdAt: ts, updatedAt: ts };
 }

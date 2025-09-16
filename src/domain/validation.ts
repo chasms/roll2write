@@ -2,7 +2,10 @@ import type { DieDefinition, ValidationIssue, ValidationResult } from "./types";
 
 type NewDieInput = Omit<DieDefinition, "id" | "createdAt" | "updatedAt">;
 
-export function validateNewDie(dieInput: NewDieInput, existingNames: string[]): ValidationResult<NewDieInput> {
+export function validateNewDie(
+  dieInput: NewDieInput,
+  existingNames: string[]
+): ValidationResult<NewDieInput> {
   const issues: ValidationIssue[] = [];
 
   const name = dieInput.name.trim();

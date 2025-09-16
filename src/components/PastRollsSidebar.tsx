@@ -1,3 +1,4 @@
+import { classNamesFunc } from "classnames-generics";
 import React from "react";
 import type { DieDefinition, RollResult } from "../domain/types";
 import { DieThumbnail } from "./DieThumbnail";
@@ -11,23 +12,44 @@ interface PastRollsSidebarProps {
   onSelectRoll?: (roll: RollResult) => void;
 }
 
-export const PastRollsSidebar: React.FC<PastRollsSidebarProps> = ({ open, onClose, rolls, diceById, onSelectRoll }) => {
+const classNames = classNamesFunc<keyof typeof styles>();
+
+export const PastRollsSidebar: React.FC<PastRollsSidebarProps> = ({
+  open,
+  onClose,
+  rolls,
+  diceById,
+  onSelectRoll,
+}) => {
   const recent = React.useMemo(
-    () => [...rolls].sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1)).slice(0, 200),
+    () =>
+      [...rolls]
+        .sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1))
+        .slice(0, 200),
     [rolls]
   );
+
   return (
-    <div aria-hidden={!open} className={[styles.sidebar, open && styles.open].filter(Boolean).join(" ")}>
+    <div
+      aria-hidden={!open}
+      className={classNames(styles.sidebar, { [styles.open]: open })}
+    >
       <div className={styles.header}>
-        <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 600 }}>Past Rolls</h3>
-        <button onClick={onClose} className={styles.closeBtn}>
+        <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 600 }}>
+          Past Rolls
+        </h3>
+
+        <button onClick={onClose} className={styles["close-button"]}>
           Close
         </button>
       </div>
+
       <div className={styles.grid}>
         {recent.length === 0 && <p className={styles.empty}>No rolls yet.</p>}
+
         {recent.map((r) => {
           const die = diceById[r.dieId];
+
           return (
             <DieThumbnail
               key={r.id}

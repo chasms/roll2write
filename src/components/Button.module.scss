@@ -2,6 +2,7 @@
 
 .button {
   @include m.button-reset;
+
   position: relative;
   font-weight: 500;
   border-radius: 4px;
@@ -12,36 +13,81 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  transition: background-color .18s, color .18s, box-shadow .25s;
+  transition:
+    background-color 0.18s,
+    color 0.18s,
+    box-shadow 0.25s;
   line-height: 1.1;
 }
 
-.button:disabled { opacity: .55; cursor: not-allowed; }
-.button:focus-visible { @include m.focus-ring(#8bd6ff); }
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.button:focus-visible {
+  @include m.focus-ring(#8bd6ff);
+}
 
 /* Variants */
-.primary { background: #4a2ed6; color: #fff; }
-.primary:hover { background: #6243f3; }
-.primary:active { background: #3823a3; }
+.primary {
+  background: #4a2ed6;
+  color: #fff;
+}
 
-.secondary { background: #ebe5d7; color: #120f19; }
-.secondary:hover { background: #dfd2b5; }
-.secondary:active { background: #c9b793; }
+.primary:hover {
+  background: #6243f3;
+}
 
-.ghost { background: transparent; color: #ebe5d7; }
-.ghost:hover { background: rgba(255,255,255,0.08); }
-.ghost:active { background: rgba(255,255,255,0.16); }
+.primary:active {
+  background: #3823a3;
+}
 
-.fae { color: #fff; }
+.secondary {
+  background: #ebe5d7;
+  color: #120f19;
+}
+
+.secondary:hover {
+  background: #dfd2b5;
+}
+
+.secondary:active {
+  background: #c9b793;
+}
+
+.ghost {
+  background: transparent;
+  color: #ebe5d7;
+}
+
+.ghost:hover {
+  background: rgb(255 255 255 / 8%);
+}
+
+.ghost:active {
+  background: rgb(255 255 255 / 16%);
+}
+
+.fae {
+  color: #fff;
+}
+
 .fae::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(130deg,#7b5df9 0%,#c184ff 55%,#8bd6ff 100%);
-  opacity: .9;
+  background: linear-gradient(130deg, #7b5df9 0%, #c184ff 55%, #8bd6ff 100%);
+  opacity: 0.9;
   border-radius: inherit;
-  transition: opacity .25s;
+  transition: opacity 0.25s;
   z-index: -1;
 }
-.fae:hover::before { opacity: 1; }
-.fae:active::before { opacity: .8; }
+
+.fae:hover::before {
+  opacity: 1;
+}
+
+.fae:active::before {
+  opacity: 0.8;
+}

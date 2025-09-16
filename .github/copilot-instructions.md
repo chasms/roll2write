@@ -25,4 +25,4 @@ This is a React + TypeScript + Vite project using SCSS Modules (previously Panda
 
 - Prefer SCSS modules per component plus shared partials; encode interactive states with BEM-like suffix classes or state modifiers.
 - Keep runtime logic out of SCSS; toggle classes instead of computing inline colors where practical.
-- Name classes descriptively (e.g., `optionList`, `toastLayer`, `fab`) avoiding abbreviations.
+- Name classes descriptively in kebab-case (e.g., `option-list`, `toast-layer`, `fab`) avoiding abbreviations.
