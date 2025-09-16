@@ -51,7 +51,9 @@ export interface ValidationIssue {
   message: string;
 }
 
-export type ValidationResult<T> = { ok: true; value: T } | { ok: false; issues: ValidationIssue[] };
+export type ValidationResult<T> =
+  | { ok: true; value: T }
+  | { ok: false; issues: ValidationIssue[] };
 
 export const DIE_SIDE_PRESETS = [4, 6, 8, 12, 20, 100] as const; // removed d10 per new fixed set
 

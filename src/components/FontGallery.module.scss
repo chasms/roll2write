@@ -11,7 +11,7 @@
   backdrop-filter: blur(14px);
 }
 
-.headerRow {
+.header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -29,7 +29,7 @@
   }
 }
 
-.sampleCard {
+.sample-card {
   padding: 1rem;
   border-radius: 8px;
   border: 1px solid rgb(255 255 255 / 15%);
@@ -39,16 +39,16 @@
     0 4px 18px -6px rgb(0 0 0 / 60%);
 }
 
-.roleHint {
+.role-hint {
   font-size: 0.7rem;
   color: #d1d5db;
 }
 
-.para {
+.paragraph {
   margin: 0;
 }
 
-.paraSm {
+.paragraph-small {
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.25;

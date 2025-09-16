@@ -22,8 +22,10 @@ This project is configured with:
 - Typescript
 - React
 - SCSS Modules (migrated from PandaCSS)
+- [Typesafe SCSS Module classname lookups](https://dev.to/activeguild/type-safe-development-with-vite-x-react-x-css-modules-x-typescript-1ebc)
+- [Stylelint](https://stylelint.io/)
 - HMR via [SWC](https://swc.rs/)
-- [ESLint rules](./eslint.config.ts)
+- [ESLint rules and formatting](./eslint.config.ts)
 - [VSCode settings](./.vscode/settings.json)
 - and [Copilot Instructions](./.github/copilot-instructions.md)
 

@@ -1,7 +1,7 @@
+import { classNamesFunc } from "classnames-generics";
 import React from "react";
 import { v4 as uuid } from "uuid";
-// Styling migrated fully to SCSS Modules.
-import styles from "./AppLayout.module.scss";
+import styles from "./App.module.scss";
 import githubIcon from "./assets/github.png";
 import { Button } from "./components/Button";
 import { DiceFormModal } from "./components/DiceFormModal";
@@ -14,6 +14,8 @@ import { useDice } from "./hooks/useDice";
 import { useRolls } from "./hooks/useRolls";
 import { useSongs } from "./hooks/useSongs";
 
+const classNames = classNamesFunc<keyof typeof styles>();
+
 function App() {
   const { dice, addDie, updateDie } = useDice();
   const { rolls, addRoll } = useRolls();
@@ -22,15 +24,25 @@ function App() {
   const [newSongName, setNewSongName] = React.useState("");
   const [songsOpen, setSongsOpen] = React.useState(false);
   const [showCreateDie, setShowCreateDie] = React.useState(false);
-  const [editingDie, setEditingDie] = React.useState<import("./domain/types").DieDefinition | null>(null);
+  const [editingDie, setEditingDie] = React.useState<
+    import("./domain/types").DieDefinition | null
+  >(null);
   const [showPast, setShowPast] = React.useState(false);
   const [showFonts, setShowFonts] = React.useState(false);
   const [fontTheme, setFontTheme] = React.useState<"classic" | "alt">("alt");
-  const [selectedDice, setSelectedDice] = React.useState<{ id: string; dieId: string }[]>([]);
+  const [selectedDice, setSelectedDice] = React.useState<
+    { id: string; dieId: string }[]
+  >([]);
   const seededRef = React.useRef(false);
 
-  const diceById = React.useMemo(() => Object.fromEntries(dice.map((d) => [d.id, d])), [dice]);
-  const rollsById = React.useMemo(() => Object.fromEntries(rolls.map((r) => [r.id, r])), [rolls]);
+  const diceById = React.useMemo(
+    () => Object.fromEntries(dice.map((d) => [d.id, d])),
+    [dice]
+  );
+  const rollsById = React.useMemo(
+    () => Object.fromEntries(rolls.map((r) => [r.id, r])),
+    [rolls]
+  );
 
   function createSong() {
     if (currentSongId) return; // already have one
@@ -61,11 +73,17 @@ function App() {
     seededRef.current = true;
   }, [dice, addDie]);
 
-  const currentSong = React.useMemo(() => songs.find((s) => s.id === currentSongId) ?? null, [songs, currentSongId]);
+  const currentSong = React.useMemo(
+    () => songs.find((s) => s.id === currentSongId) ?? null,
+    [songs, currentSongId]
+  );
 
   function appendRollToCurrentSong(rollId: string) {
     if (!currentSong) return;
-    updateSong(currentSong.id, (prev) => ({ ...prev, rollIds: [...prev.rollIds, rollId] }));
+    updateSong(currentSong.id, (prev) => ({
+      ...prev,
+      rollIds: [...prev.rollIds, rollId],
+    }));
   }
 
   function handleNewRoll(roll: RollResult) {
@@ -79,7 +97,10 @@ function App() {
 
   function removeRollFromCurrent(index: number) {
     if (!currentSong) return;
-    updateSong(currentSong.id, (prev) => ({ ...prev, rollIds: prev.rollIds.filter((_, i) => i !== index) }));
+    updateSong(currentSong.id, (prev) => ({
+      ...prev,
+      rollIds: prev.rollIds.filter((_, i) => i !== index),
+    }));
   }
 
   function addDieToSelection(dieId: string) {
@@ -111,10 +132,10 @@ function App() {
   }
 
   // Class mappings now provided by SCSS module
-  const songButtonBaseClass = styles.songBtn;
-  const songButtonSelectedClass = styles.songBtnSelected;
-  const songButtonUnselectedClass = styles.songBtnUnselected;
-  const selectionAreaClass = styles.selectionArea;
+  const songButtonBaseClass = styles["song-button"];
+  const songButtonSelectedClass = styles["song-button-selected"];
+  const songButtonUnselectedClass = styles["song-button-unselected"];
+  const selectionAreaClass = styles["selection-area"];
   const songStatusMessage = currentSong
     ? "Adding rolls auto-saves to current song."
     : "Enter a song name and press Create (or Enter) to start auto-saving rolls.";
@@ -122,13 +143,20 @@ function App() {
   const dieModalOpen = showCreateDie; // derived for clarity
 
   return (
-    <div className={`${styles.root} ${fontTheme === "classic" ? "r2w-classic" : "r2w-alt"}`}>
+    <div
+      className={classNames(
+        styles.root,
+        fontTheme === "classic" ? styles["r2w-classic"] : styles["r2w-alt"]
+      )}
+    >
       <header className={styles.header}>
-        <div className={styles.flexRow}>
+        <div className={styles["flex-row"]}>
           <h1 className={styles.title}>Roll2Write</h1>
-          <div style={{ position: "relative", display: "flex", gap: "0.75rem" }}>
+          <div
+            style={{ position: "relative", display: "flex", gap: "0.75rem" }}
+          >
             <Button
-              className="r2w-fae-btn"
+              className={styles["r2w-fae-btn"]}
               variant="fae"
               onClick={() => {
                 setSongsOpen((o) => !o);
@@ -137,7 +165,7 @@ function App() {
               Songs {songsOpen ? "▲" : "▼"}
             </Button>
             <Button
-              className="r2w-fae-btn"
+              className={styles["r2w-fae-btn"]}
               variant="fae"
               onClick={() => {
                 setShowPast((o) => !o);
@@ -146,7 +174,7 @@ function App() {
               {showPast ? "Hide Past" : "Past Rolls"}
             </Button>
             <Button
-              className="r2w-fae-btn"
+              className={styles["r2w-fae-btn"]}
               variant="fae"
               onClick={() => {
                 setShowFonts(true);
@@ -155,7 +183,7 @@ function App() {
               Fonts
             </Button>
             <Button
-              className="r2w-fae-btn"
+              className={styles["r2w-fae-btn"]}
               variant="fae"
               onClick={() => {
                 setFontTheme((t) => (t === "classic" ? "alt" : "classic"));
@@ -167,8 +195,10 @@ function App() {
           <div style={{ flex: 1 }} />
         </div>
         {songsOpen && (
-          <div className={styles.songsPanel}>
-            {songs.length === 0 && <p style={{ margin: 0, fontSize: "0.875rem" }}>No songs yet.</p>}
+          <div className={styles["songs-panel"]}>
+            {songs.length === 0 && (
+              <p style={{ margin: 0, fontSize: "0.875rem" }}>No songs yet.</p>
+            )}
             <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
               <li key="__new">
                 <button
@@ -205,13 +235,20 @@ function App() {
       </header>
 
       {/* Main Interaction Section */}
-      <section className={styles.mainSection}>
-        <div className={styles.interactionRow}>
+      <section className={styles["main-section"]}>
+        <div className={styles["interaction-row"]}>
           {/* Left: Selection + Rolls */}
-          <div className={styles.leftCol}>
+          <div className={styles["left-col"]}>
             <div style={{ marginBottom: "1rem" }}>
               {!currentSong && (
-                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "stretch" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.75rem",
+                    flexWrap: "wrap",
+                    alignItems: "stretch",
+                  }}
+                >
                   <input
                     placeholder="New song name..."
                     value={newSongName}
@@ -232,7 +269,7 @@ function App() {
                     }}
                   />
                   <Button
-                    className="r2w-fae-btn"
+                    className={styles["r2w-fae-btn"]}
                     variant="primary"
                     disabled={!newSongName.trim()}
                     onClick={() => {
@@ -243,9 +280,20 @@ function App() {
                   </Button>
                 </div>
               )}
-              {currentSong && <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0 }}>{currentSong.name}</h2>}
+              {currentSong && (
+                <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0 }}>
+                  {currentSong.name}
+                </h2>
+              )}
             </div>
-            <h3 style={{ marginTop: 0, marginBottom: "0.5rem", fontSize: "1.125rem", fontWeight: 600 }}>
+            <h3
+              style={{
+                marginTop: 0,
+                marginBottom: "0.5rem",
+                fontSize: "1.125rem",
+                fontWeight: 600,
+              }}
+            >
               Selected Dice
             </h3>
             <div
@@ -294,9 +342,17 @@ function App() {
                 );
               })}
             </div>
-            <div style={{ marginTop: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+            <div
+              style={{
+                marginTop: "1rem",
+                display: "flex",
+                gap: "1rem",
+                flexWrap: "wrap",
+                alignItems: "center",
+              }}
+            >
               <Button
-                className="r2w-fae-btn"
+                className={styles["r2w-fae-btn"]}
                 variant="fae"
                 disabled={!currentSong || selectedDice.length === 0}
                 onClick={() => {
@@ -314,9 +370,20 @@ function App() {
               >
                 Clear Set
               </Button>
-              {!currentSong && <span style={{ fontSize: "0.875rem", color: "#d1d5db" }}>Enter a song name first.</span>}
+              {!currentSong && (
+                <span style={{ fontSize: "0.875rem", color: "#d1d5db" }}>
+                  Enter a song name first.
+                </span>
+              )}
             </div>
-            <h3 style={{ marginTop: "2rem", marginBottom: "0.5rem", fontSize: "1.125rem", fontWeight: 600 }}>
+            <h3
+              style={{
+                marginTop: "2rem",
+                marginBottom: "0.5rem",
+                fontSize: "1.125rem",
+                fontWeight: 600,
+              }}
+            >
               Current Song Rolls
             </h3>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
@@ -361,15 +428,26 @@ function App() {
                   </div>
                 );
               })}
-              {!currentSong && <p style={{ fontSize: "0.875rem" }}>(Enter a song name above.)</p>}
+              {!currentSong && (
+                <p style={{ fontSize: "0.875rem" }}>
+                  (Enter a song name above.)
+                </p>
+              )}
             </div>
           </div>
           {/* Right: Dice Library */}
-          <div className={styles.rightCol}>
-            <h3 style={{ marginTop: 0, marginBottom: "0.5rem", fontSize: "1.125rem", fontWeight: 600 }}>
+          <div className={styles["right-col"]}>
+            <h3
+              style={{
+                marginTop: 0,
+                marginBottom: "0.5rem",
+                fontSize: "1.125rem",
+                fontWeight: 600,
+              }}
+            >
               Dice Library
             </h3>
-            <div className={styles.diceLibraryGrid}>
+            <div className={styles["dice-library-grid"]}>
               {dice.map((d) => (
                 <div
                   key={d.id}
@@ -444,7 +522,9 @@ function App() {
       {showCreateDie && (
         <DiceFormModal
           die={editingDie ?? undefined}
-          existingNames={dice.filter((d) => d.id !== editingDie?.id).map((d) => d.name)}
+          existingNames={dice
+            .filter((d) => d.id !== editingDie?.id)
+            .map((d) => d.name)}
           onClose={() => {
             setShowCreateDie(false);
             setEditingDie(null);
@@ -462,8 +542,13 @@ function App() {
           }}
         />
       )}
-      <a className={styles.githubButton} href="https://github.com/chasms/roll2write" target="_blank" rel="noreferrer">
-        <img className={styles.githubImg} src={githubIcon} />
+      <a
+        className={styles["github-button"]}
+        href="https://github.com/chasms/roll2write"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <img className={styles["github-image"]} src={githubIcon} />
       </a>
       <div className="r2w-sparkles" />
     </div>

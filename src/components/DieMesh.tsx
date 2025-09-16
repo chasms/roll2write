@@ -79,7 +79,13 @@ function buildPolyhedronGeometry(sides: number): THREE.BufferGeometry | null {
   }
 }
 
-export const DieMesh: React.FC<DieMeshProps> = ({ sides, color, pattern, angle, appearance }) => {
+export const DieMesh: React.FC<DieMeshProps> = ({
+  sides,
+  color,
+  pattern,
+  angle,
+  appearance,
+}) => {
   const geometry = useMemo(() => {
     const poly = buildPolyhedronGeometry(sides);
     let g: THREE.BufferGeometry;
@@ -115,7 +121,10 @@ export const DieMesh: React.FC<DieMeshProps> = ({ sides, color, pattern, angle, 
     return g;
   }, [sides, angle]);
 
-  const edgesGeometry = useMemo(() => new THREE.EdgesGeometry(geometry, 40), [geometry]);
+  const edgesGeometry = useMemo(
+    () => new THREE.EdgesGeometry(geometry, 40),
+    [geometry]
+  );
 
   function edgeColorFromHex(hex: string): string {
     const cleaned = hex.replace(/[^0-9a-fA-F]/g, "");
@@ -137,7 +146,8 @@ export const DieMesh: React.FC<DieMeshProps> = ({ sides, color, pattern, angle, 
 
   const texture = useMemo(() => {
     function setSRGB(tex: THREE.Texture) {
-      (tex as THREE.Texture & { colorSpace?: unknown }).colorSpace = THREE.SRGBColorSpace;
+      (tex as THREE.Texture & { colorSpace?: unknown }).colorSpace =
+        THREE.SRGBColorSpace;
       tex.needsUpdate = true;
     }
     try {
@@ -236,7 +246,9 @@ export const DieMesh: React.FC<DieMeshProps> = ({ sides, color, pattern, angle, 
     const rr = Math.round(ar + (br - ar) * t);
     const rg = Math.round(ag + (bg - ag) * t);
     const rb = Math.round(ab + (bb - ab) * t);
-    return "#" + [rr, rg, rb].map((n) => n.toString(16).padStart(2, "0")).join("");
+    return (
+      "#" + [rr, rg, rb].map((n) => n.toString(16).padStart(2, "0")).join("")
+    );
   }
 
   // Sparkle points (static per geometry + color) for simple glitter effect
@@ -284,7 +296,9 @@ export const DieMesh: React.FC<DieMeshProps> = ({ sides, color, pattern, angle, 
         clearcoatRoughness={appearance?.clearcoatRoughness ?? 0.3}
         sheen={appearance?.sheen ?? 0}
         sheenColor={appearance?.sheenColor ?? color}
-        transparent={(appearance?.opacity ?? 1) < 1 || (appearance?.transmission ?? 0) > 0}
+        transparent={
+          (appearance?.opacity ?? 1) < 1 || (appearance?.transmission ?? 0) > 0
+        }
         opacity={appearance?.opacity ?? 1}
       />
       <lineSegments>
