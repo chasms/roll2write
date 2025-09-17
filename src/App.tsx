@@ -5,7 +5,7 @@ import styles from "./App.module.scss";
 import githubIcon from "./assets/github.png";
 import { Button } from "./components/Button";
 import { DiceFormModal } from "./components/DiceFormModal";
-import { DieThumbnail } from "./components/DieThumbnail";
+import { DiceStage } from "./components/DiceStage";
 import { FontGallery } from "./components/FontGallery";
 import { PastRollsSidebar } from "./components/PastRollsSidebar";
 import { DEFAULT_DICE } from "./domain/defaultDice";
@@ -33,6 +33,7 @@ function App() {
   const [selectedDice, setSelectedDice] = React.useState<
     { id: string; dieId: string }[]
   >([]);
+  const [rollPulse, setRollPulse] = React.useState(0);
   const seededRef = React.useRef(false);
 
   const diceById = React.useMemo(
@@ -117,6 +118,7 @@ function App() {
 
   function rollAllSelected() {
     if (!currentSong || selectedDice.length === 0) return;
+    setRollPulse((v) => v + 1);
     selectedDice.forEach((sel) => {
       const die = diceById[sel.dieId];
       const sideIndex = Math.floor(Math.random() * die.sides);
@@ -296,51 +298,29 @@ function App() {
             >
               Selected Dice
             </h3>
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-              }}
-              onDrop={(e) => {
-                const dieId = e.dataTransfer.getData("text/plain");
-                if (dieId) addDieToSelection(dieId);
-              }}
-              className={selectionAreaClass}
-            >
+            <div className={selectionAreaClass}>
+              <DiceStage
+                mode="selected"
+                selected={selectedDice.map((s) => ({
+                  id: s.id,
+                  die: diceById[s.dieId],
+                }))}
+                library={[]}
+                onRemoveSelected={(selectionId) => {
+                  removeSelection(selectionId);
+                }}
+                maxHeight={200}
+                rowPx={110}
+                cameraZ={10}
+                cameraFov={36}
+                rollPulse={rollPulse}
+              />
               {selectedDice.length === 0 && (
                 <span style={{ fontSize: "0.875rem", color: "#d1d5db" }}>
-                  Drag dice here or click dice to build a set.
+                  Click dice in the Library canvas to add them here, then click
+                  a die in this canvas to remove it. Drag to rotate dice.
                 </span>
               )}
-              {selectedDice.map((sel) => {
-                const die = diceById[sel.dieId];
-                return (
-                  <div key={sel.id} style={{ position: "relative" }}>
-                    <DieThumbnail die={die} size={72} />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        removeSelection(sel.id);
-                      }}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        width: "1.25rem",
-                        height: "1.25rem",
-                        borderRadius: "999px",
-                        fontSize: "0.75rem",
-                        lineHeight: 1,
-                        cursor: "pointer",
-                        color: "white",
-                        background: "#f87171",
-                      }}
-                      aria-label="Remove selected die"
-                    >
-                      ×
-                    </button>
-                  </div>
-                );
-              })}
             </div>
             <div
               style={{
@@ -447,49 +427,27 @@ function App() {
             >
               Dice Library
             </h3>
-            <div className={styles["dice-library-grid"]}>
-              {dice.map((d) => (
-                <div
-                  key={d.id}
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData("text/plain", d.id);
-                  }}
-                  style={{ position: "relative" }}
-                >
-                  <DieThumbnail
-                    die={d}
-                    size={96}
-                    onClick={() => {
-                      addDieToSelection(d.id);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    style={{
-                      position: "absolute",
-                      top: "0.25rem",
-                      right: "0.25rem",
-                      fontSize: "0.75rem",
-                      padding: "0.25rem 0.4rem",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      background: "rgba(0,0,0,0.45)",
-                      color: "white",
-                      border: "1px solid rgba(255,255,255,0.25)",
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingDie(d);
-                      setShowCreateDie(true);
-                    }}
-                    aria-label="Edit die"
-                  >
-                    ✎
-                  </button>
-                </div>
-              ))}
+            <div
+              style={{
+                fontSize: "0.875rem",
+                color: "#d1d5db",
+                marginBottom: "0.5rem",
+              }}
+            >
+              Click a die to add it to the Selected canvas. Drag to rotate.
             </div>
+            <DiceStage
+              mode="library"
+              selected={[]}
+              library={dice}
+              onAddFromLibrary={(dieId) => {
+                addDieToSelection(dieId);
+              }}
+              maxHeight={220}
+              rowPx={110}
+              cameraZ={10}
+              cameraFov={36}
+            />
           </div>
         </div>
       </section>
