@@ -34,6 +34,9 @@ function App() {
     { id: string; dieId: string }[]
   >([]);
   const [rollPulse, setRollPulse] = React.useState(0);
+  const [rollPulseTargetId, setRollPulseTargetId] = React.useState<
+    string | null
+  >(null);
   const seededRef = React.useRef(false);
 
   const diceById = React.useMemo(
@@ -105,7 +108,17 @@ function App() {
   }
 
   function addDieToSelection(dieId: string) {
-    setSelectedDice((cur) => [...cur, { id: uuid(), dieId }]);
+    setSelectedDice((cur) => {
+      if (cur.length >= 10) {
+        // Soft validation: ignore add when at cap
+        return cur;
+      }
+      const id = uuid();
+      // Trigger a pulse for only this die
+      setRollPulse((v) => v + 1);
+      setRollPulseTargetId(id);
+      return [...cur, { id, dieId }];
+    });
   }
 
   function removeSelection(id: string) {
@@ -119,6 +132,7 @@ function App() {
   function rollAllSelected() {
     if (!currentSong || selectedDice.length === 0) return;
     setRollPulse((v) => v + 1);
+    setRollPulseTargetId(null); // null = target all
     selectedDice.forEach((sel) => {
       const die = diceById[sel.dieId];
       const sideIndex = Math.floor(Math.random() * die.sides);
@@ -313,6 +327,7 @@ function App() {
                 rowPx={110}
                 cameraZ={10}
                 rollPulse={rollPulse}
+                rollPulseTargetId={rollPulseTargetId}
               />
               {selectedDice.length === 0 && (
                 <span style={{ fontSize: "0.875rem", color: "#d1d5db" }}>

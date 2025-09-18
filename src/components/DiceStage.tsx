@@ -20,6 +20,8 @@ export interface DiceStageProps {
   /** Optional explicit orthographic zoom override. If not provided, derived from rowPx & cell size for stable apparent scale. */
   cameraZoom?: number;
   rollPulse?: number; // when changed, briefly spin selected dice
+  /** If provided, only the matching selection id spins for this pulse; null spins all; undefined uses default (all). */
+  rollPulseTargetId?: string | null;
 }
 
 function gridPositions(
@@ -47,6 +49,7 @@ function StageScene({
   onAddFromLibrary,
   onRemoveSelected,
   rollPulse,
+  rollPulseTargetId,
 }: Omit<
   DiceStageProps,
   "height" | "maxHeight" | "rowPx" | "cameraZ" | "cameraZoom"
@@ -230,23 +233,38 @@ function StageScene({
   const spinSpeedsRef = React.useRef<Map<string, { sx: number; sy: number }>>(
     new Map()
   );
+  const selectedRef = React.useRef(selected);
+  React.useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
 
   React.useEffect(() => {
-    if (typeof rollPulse === "number") {
-      spinUntilRef.current = performance.now() + 900;
-      // On each pulse, assign randomized spin directions and magnitudes per die (selected only)
-      const speeds = new Map<string, { sx: number; sy: number }>();
-      for (const sel of selected) {
-        const dirY = Math.random() < 0.5 ? -1 : 1;
-        const dirX = Math.random() < 0.5 ? -1 : 1;
-        // Randomize around a pleasant range; Y stronger than X
-        const sy = THREE.MathUtils.lerp(2.2, 7.8, Math.random()) * dirY; // rad/s
-        const sx = THREE.MathUtils.lerp(0.2, 1.0, Math.random()) * dirX; // rad/s
-        speeds.set(sel.id, { sx, sy });
-      }
-      spinSpeedsRef.current = speeds;
+    if (typeof rollPulse !== "number") return;
+    // When rollPulse changes, compute targets
+    const list = selectedRef.current;
+    if (list.length === 0) return;
+    spinUntilRef.current = performance.now() + 900;
+    const speeds = new Map<string, { sx: number; sy: number }>();
+    const assign = (id: string) => {
+      const dirY = Math.random() < 0.5 ? -1 : 1;
+      const dirX = Math.random() < 0.5 ? -1 : 1;
+      const sy = THREE.MathUtils.lerp(2.2, 7.8, Math.random()) * dirY; // rad/s
+      const sx = THREE.MathUtils.lerp(0.2, 1.0, Math.random()) * dirX; // rad/s
+      speeds.set(id, { sx, sy });
+    };
+    if (rollPulseTargetId === null) {
+      // Pulse all selected dice
+      for (const sel of list) assign(sel.id);
+    } else if (rollPulseTargetId) {
+      // Pulse only the targeted selection id if present
+      if (list.some((s) => s.id === rollPulseTargetId))
+        assign(rollPulseTargetId);
+    } else {
+      // Default: pulse all
+      for (const sel of list) assign(sel.id);
     }
-  }, [rollPulse, selected]);
+    spinSpeedsRef.current = speeds;
+  }, [rollPulse, rollPulseTargetId]);
 
   useFrame((_, delta) => {
     const now = performance.now();
