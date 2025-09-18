@@ -1,4 +1,4 @@
-# [Roll2Write](roll2write.chas.ms)
+# ![Icon](public/favicon-32x32.png) [Roll2Write](roll2write.chas.ms)
 
 A songwriting game created in a few days for A.G. Cook's [School of Song](https://schoolofsong.org/) course.
 
