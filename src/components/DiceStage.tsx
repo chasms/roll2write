@@ -1,6 +1,6 @@
 import { Html, useCursor } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import type { DieDefinition } from "../domain/types";
@@ -57,14 +57,32 @@ function StageScene({
   const libraryCols = 5; // constant column count for library
   const cellSelected = 2.4; // keep consistent cell size between stages
   const cellLibrary = 2.4;
+  // Use viewport height (world units) to TOP-anchor the first row so adding rows doesn't push content downward.
+  const viewportH = useThree((s) => s.viewport.height);
+  const selectedOriginY = viewportH / 2 - cellSelected / 2;
+  const libraryOriginY = viewportH / 2 - cellLibrary / 2;
   // Fixed spacing; no compression to avoid snapping when transitioning rows
   const selectedPos = useMemo(
-    () => gridPositions(selected.length, selectedCols, cellSelected, 0),
-    [selected.length]
+    () =>
+      gridPositions(
+        selected.length,
+        selectedCols,
+        cellSelected,
+        0,
+        selectedOriginY
+      ),
+    [selected.length, selectedOriginY]
   );
   const libraryPos = useMemo(
-    () => gridPositions(library.length, libraryCols, cellLibrary, 0, 0),
-    [library.length]
+    () =>
+      gridPositions(
+        library.length,
+        libraryCols,
+        cellLibrary,
+        0,
+        libraryOriginY
+      ),
+    [library.length, libraryOriginY]
   );
 
   const [hoveredId, setHoveredId] = React.useState<string | null>(null);
@@ -209,19 +227,36 @@ function StageScene({
   }, []);
 
   const spinUntilRef = React.useRef<number>(0);
+  const spinSpeedsRef = React.useRef<Map<string, { sx: number; sy: number }>>(
+    new Map()
+  );
 
   React.useEffect(() => {
     if (typeof rollPulse === "number") {
       spinUntilRef.current = performance.now() + 900;
+      // On each pulse, assign randomized spin directions and magnitudes per die (selected only)
+      const speeds = new Map<string, { sx: number; sy: number }>();
+      for (const sel of selected) {
+        const dirY = Math.random() < 0.5 ? -1 : 1;
+        const dirX = Math.random() < 0.5 ? -1 : 1;
+        // Randomize around a pleasant range; Y stronger than X
+        const sy = THREE.MathUtils.lerp(2.2, 7.8, Math.random()) * dirY; // rad/s
+        const sx = THREE.MathUtils.lerp(0.2, 1.0, Math.random()) * dirX; // rad/s
+        speeds.set(sel.id, { sx, sy });
+      }
+      spinSpeedsRef.current = speeds;
     }
-  }, [rollPulse]);
+  }, [rollPulse, selected]);
 
   useFrame((_, delta) => {
     const now = performance.now();
     if (now < spinUntilRef.current && mode === "selected") {
-      const speed = 5.2;
-      groupRefs.current.forEach((g) => {
-        g.rotation.y += delta * speed;
+      groupRefs.current.forEach((g, id) => {
+        const sp = spinSpeedsRef.current.get(id);
+        const sy = sp?.sy ?? 5.2;
+        const sx = sp?.sx ?? 0;
+        g.rotation.y += delta * sy;
+        g.rotation.x = Math.max(-1.2, Math.min(1.2, g.rotation.x + delta * sx));
       });
     }
     // Apply inertia with exponential damping
@@ -394,7 +429,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
     mode === "selected"
       ? Math.max(1, Math.ceil((selected.length || 1) / selectedCols))
       : Math.max(1, Math.ceil((library.length || 1) / libraryCols));
-  const baseContentHeight = rows * rowPx + Math.round(rowPx * 0.05); // target content height
+  const baseContentHeight = rows * rowPx; // target content height (no extra padding to avoid cumulative jumps)
 
   // Smooth 1->2 row expansion (Option D): animate when transitioning from 1 to 2 rows only
   const prevRowsRef = React.useRef(rows);
@@ -410,7 +445,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   if (prevRowsRef.current !== rows) {
     if (prevRowsRef.current === 1 && rows === 2) {
       animRef.current = {
-        from: rowPx + Math.round(rowPx * 0.05), // previous single-row height
+        from: rowPx, // previous single-row height
         to: baseContentHeight,
         start: performance.now(),
         duration: 200, // ms
@@ -472,6 +507,9 @@ export const DiceStage: React.FC<DiceStageProps> = ({
     ? {
         height: effectiveHeight,
         width: "100%",
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "stretch",
         transition: animRef.current ? undefined : "height 0.05s linear",
       }
     : { width: "100%" };
