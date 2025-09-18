@@ -1,6 +1,6 @@
 import { Html, useCursor } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import type { DieDefinition } from "../domain/types";
@@ -48,16 +48,15 @@ function StageScene({
   rollPulse,
 }: Omit<DiceStageProps, "height">) {
   // layout inside Canvas (centered grid per mode)
-  const selectedCols = Math.min(
-    4,
-    Math.max(1, Math.ceil(Math.sqrt(selected.length || 1)))
-  );
-  const libraryCols = 5;
-  const cellSelected = 2.6;
+  // Constant column count so dice size remains stable; we will scale positions instead
+  const selectedCols = 5;
+  const libraryCols = 5; // constant column count for library
+  const cellSelected = 2.4; // match library to keep dice apparent size consistent
   const cellLibrary = 2.4;
+  // Fixed spacing; no compression to avoid snapping when transitioning rows
   const selectedPos = useMemo(
     () => gridPositions(selected.length, selectedCols, cellSelected, 0),
-    [selected.length, selectedCols]
+    [selected.length]
   );
   const libraryPos = useMemo(
     () => gridPositions(library.length, libraryCols, cellLibrary, 0, 0),
@@ -248,127 +247,139 @@ function StageScene({
       {/* eslint-disable-next-line react/no-unknown-property */}
       <directionalLight position={[-6, -8, 6]} intensity={0.3} />
 
-      {mode === "selected"
-        ? selected.map((sel, i) => {
-            const die = sel.die;
-            const { angle } = diePreviewSvgProps(die);
-            const [x, y, z] = selectedPos[i] ?? [0, 0, 0];
-            return (
-              <group
-                key={sel.id}
-                // eslint-disable-next-line react/no-unknown-property
-                position={[x, y, z]}
-                ref={(g) => {
-                  if (g) groupRefs.current.set(sel.id, g);
-                  else groupRefs.current.delete(sel.id);
-                }}
-                onPointerOver={() => {
-                  setHoveredId(sel.id);
-                }}
-                onPointerOut={() => {
-                  setHoveredId((h) => (h === sel.id ? null : h));
-                }}
-                onPointerDown={(e) => {
-                  beginDrag(e, sel.id);
-                }}
-                onPointerMove={onDragMove}
-                onPointerUp={endDrag}
-                onClick={(event: THREE.Event) => {
-                  // r3f events extend Three's Event; stop propagation to parent groups/canvas
-                  (
-                    event as unknown as { stopPropagation: () => void }
-                  ).stopPropagation();
-                  withClickGuard(() => {
-                    onRemoveSelected?.(sel.id);
-                  });
-                }}
-              >
-                <DieMesh
-                  sides={die.sides}
-                  color={die.colorHex}
-                  pattern={die.pattern}
-                  angle={angle}
-                  appearance={die.appearance}
-                />
-                <Html
-                  center
-                  distanceFactor={9}
-                  style={{ pointerEvents: "none" }}
+      {/* Pixel-size stabilization: scale dice inversely to canvas height changes to eliminate perceived zoom */}
+      <PixelStableGroup>
+        {mode === "selected"
+          ? selected.map((sel, i) => {
+              const die = sel.die;
+              const { angle } = diePreviewSvgProps(die);
+              const [x, y, z] = selectedPos[i] ?? [0, 0, 0];
+              return (
+                <group
+                  key={sel.id}
+                  // eslint-disable-next-line react/no-unknown-property
+                  position={[x, y, z]}
+                  ref={(g) => {
+                    if (g) groupRefs.current.set(sel.id, g);
+                    else groupRefs.current.delete(sel.id);
+                  }}
+                  onPointerOver={() => {
+                    setHoveredId(sel.id);
+                  }}
+                  onPointerOut={() => {
+                    setHoveredId((h) => (h === sel.id ? null : h));
+                  }}
+                  onPointerDown={(e) => {
+                    beginDrag(e, sel.id);
+                  }}
+                  onPointerMove={onDragMove}
+                  onPointerUp={endDrag}
+                  onClick={(event: THREE.Event) => {
+                    // r3f events extend Three's Event; stop propagation to parent groups/canvas
+                    (
+                      event as unknown as { stopPropagation: () => void }
+                    ).stopPropagation();
+                    withClickGuard(() => {
+                      onRemoveSelected?.(sel.id);
+                    });
+                  }}
                 >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: "#fff",
-                      textShadow: "0 1px 2px rgba(0,0,0,0.6)",
-                    }}
+                  <DieMesh
+                    sides={die.sides}
+                    color={die.colorHex}
+                    pattern={die.pattern}
+                    angle={angle}
+                    appearance={die.appearance}
+                  />
+                  <Html
+                    center
+                    distanceFactor={9}
+                    style={{ pointerEvents: "none" }}
                   >
-                    {die.name}
-                  </div>
-                </Html>
-              </group>
-            );
-          })
-        : library.map((die, i) => {
-            const { angle } = diePreviewSvgProps(die);
-            const [x, y, z] = libraryPos[i] ?? [0, 0, 0];
-            return (
-              <group
-                key={die.id}
-                // eslint-disable-next-line react/no-unknown-property
-                position={[x, y, z]}
-                ref={(group) => {
-                  if (group) groupRefs.current.set(die.id, group);
-                  else groupRefs.current.delete(die.id);
-                }}
-                onPointerOver={() => {
-                  setHoveredId(die.id);
-                }}
-                onPointerOut={() => {
-                  setHoveredId((h) => (h === die.id ? null : h));
-                }}
-                onPointerDown={(e) => {
-                  beginDrag(e, die.id);
-                }}
-                onPointerMove={onDragMove}
-                onPointerUp={endDrag}
-                onClick={(e: THREE.Event) => {
-                  (
-                    e as unknown as { stopPropagation: () => void }
-                  ).stopPropagation();
-                  withClickGuard(() => {
-                    onAddFromLibrary?.(die.id);
-                  });
-                }}
-              >
-                <DieMesh
-                  sides={die.sides}
-                  color={die.colorHex}
-                  pattern={die.pattern}
-                  angle={angle}
-                  appearance={die.appearance}
-                />
-                <Html
-                  center
-                  distanceFactor={9}
-                  style={{ pointerEvents: "none" }}
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: "#fff",
+                        textShadow: "0 1px 2px rgba(0,0,0,0.6)",
+                      }}
+                    >
+                      {die.name}
+                    </div>
+                  </Html>
+                </group>
+              );
+            })
+          : library.map((die, i) => {
+              const { angle } = diePreviewSvgProps(die);
+              const [x, y, z] = libraryPos[i] ?? [0, 0, 0];
+              return (
+                <group
+                  key={die.id}
+                  // eslint-disable-next-line react/no-unknown-property
+                  position={[x, y, z]}
+                  ref={(group) => {
+                    if (group) groupRefs.current.set(die.id, group);
+                    else groupRefs.current.delete(die.id);
+                  }}
+                  onPointerOver={() => {
+                    setHoveredId(die.id);
+                  }}
+                  onPointerOut={() => {
+                    setHoveredId((h) => (h === die.id ? null : h));
+                  }}
+                  onPointerDown={(e) => {
+                    beginDrag(e, die.id);
+                  }}
+                  onPointerMove={onDragMove}
+                  onPointerUp={endDrag}
+                  onClick={(e: THREE.Event) => {
+                    (
+                      e as unknown as { stopPropagation: () => void }
+                    ).stopPropagation();
+                    withClickGuard(() => {
+                      onAddFromLibrary?.(die.id);
+                    });
+                  }}
                 >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: "#d1d5db",
-                      textShadow: "0 1px 2px rgba(0,0,0,0.6)",
-                    }}
+                  <DieMesh
+                    sides={die.sides}
+                    color={die.colorHex}
+                    pattern={die.pattern}
+                    angle={angle}
+                    appearance={die.appearance}
+                  />
+                  <Html
+                    center
+                    distanceFactor={9}
+                    style={{ pointerEvents: "none" }}
                   >
-                    {die.name}
-                  </div>
-                </Html>
-              </group>
-            );
-          })}
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: "#d1d5db",
+                        textShadow: "0 1px 2px rgba(0,0,0,0.6)",
+                      }}
+                    >
+                      {die.name}
+                    </div>
+                  </Html>
+                </group>
+              );
+            })}
+      </PixelStableGroup>
     </>
   );
+}
+
+// Wrapper that keeps a constant visual scale regardless of canvas pixel height changes
+function PixelStableGroup({ children }: { children: React.ReactNode }) {
+  const size = useThree((s) => s.size);
+  const baseHeightRef = React.useRef<number | null>(null);
+  baseHeightRef.current ??= size.height;
+  const scale = baseHeightRef.current / size.height;
+  return <group scale={[scale, scale, scale]}>{children}</group>;
 }
 
 export const DiceStage: React.FC<DiceStageProps> = ({
@@ -385,17 +396,23 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   rollPulse,
 }) => {
   // compute grid rows to size the canvas when using a scroll container
-  const selectedCols = 5;
+  const selectedCols = 5; // keep constant so Canvas height & camera stable
   const libraryCols = 5;
   const rows =
     mode === "selected"
       ? Math.max(1, Math.ceil((selected.length || 1) / selectedCols))
       : Math.max(1, Math.ceil((library.length || 1) / libraryCols));
-  const contentHeight = Math.max(rowPx * 2, rows * rowPx);
+  const contentHeight = rows * rowPx + Math.round(rowPx * 0.25); // precise height + small buffer
+  // Prevent perceived zoom: keep a stable minimum canvas height so aspect ratio doesn't change
+  const effectiveHeight = maxHeight
+    ? Math.max(contentHeight, maxHeight)
+    : contentHeight;
   const containerStyle = maxHeight
     ? { width: "100%", maxHeight, overflowY: "auto" as const }
     : { width: "100%", height };
-  const innerStyle = maxHeight ? { height: contentHeight } : undefined;
+  const innerStyle = maxHeight
+    ? { height: effectiveHeight, width: "100%" }
+    : { width: "100%" };
 
   return (
     <div style={containerStyle}>

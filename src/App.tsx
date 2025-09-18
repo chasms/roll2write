@@ -443,7 +443,7 @@ function App() {
               onAddFromLibrary={(dieId) => {
                 addDieToSelection(dieId);
               }}
-              maxHeight={220}
+              maxHeight={260} // slightly taller library canvas
               rowPx={110}
               cameraZ={10}
               cameraFov={36}
