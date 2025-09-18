@@ -1,10 +1,10 @@
 import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
-import * as THREE from "three";
 import { classNamesFunc } from "classnames-generics";
+import * as React from "react";
+import * as THREE from "three";
 import type { DieDefinition } from "../domain/types";
 import { diePreviewSvgProps } from "../utils/diceAppearance";
 import { DieMesh } from "./DieMesh";
-import * as React from "react";
 import styles from "./DieThumbnail.module.scss";
 
 export const DIE_THUMBNAIL_SIZE = 60; // default size constant

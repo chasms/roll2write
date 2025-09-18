@@ -93,6 +93,8 @@ function StageScene({
     lastAngleX: number;
     lastAngleY: number;
     lastTs: number; // milliseconds
+    lastVX: number; // last computed angular velocity x (rad/s)
+    lastVY: number; // last computed angular velocity y (rad/s)
   } | null>(null);
   // Single ref map for this canvas' dice
   const groupRefs = React.useRef<Map<string, THREE.Group>>(new Map());
@@ -104,6 +106,8 @@ function StageScene({
     const group = groupRefs.current.get(id) ?? null;
     if (!group) return; // shouldn't happen
     event.stopPropagation();
+    // Clear any existing inertia for this die while actively dragging
+    inertia.current.delete(id);
     draggingRef.current = {
       id,
       startX: event.clientX,
@@ -114,6 +118,8 @@ function StageScene({
       lastAngleX: group.rotation.x,
       lastAngleY: group.rotation.y,
       lastTs: event.timeStamp,
+      lastVX: 0,
+      lastVY: 0,
     };
   };
 
@@ -144,29 +150,44 @@ function StageScene({
     draggable.lastAngleX = group.rotation.x;
     draggable.lastAngleY = group.rotation.y;
     draggable.lastTs = event.timeStamp;
-    // Store velocity preview in a temp slot on refs (we'll commit on endDrag)
-    (group as unknown as { __lastVX?: number; __lastVY?: number }).__lastVX =
-      vx;
-    (group as unknown as { __lastVX?: number; __lastVY?: number }).__lastVY =
-      vy;
+    draggable.lastVX = vx;
+    draggable.lastVY = vy;
   };
   const endDrag = (event: ThreeEvent<PointerEvent> | PointerEvent) => {
-    // If we moved significantly, swallow the upcoming click
     const draggable = draggingRef.current;
-    if (draggable?.moved) {
-      event.stopPropagation();
-      // also trip the click guard once to prevent duplicate add/remove
+    if (!draggable) return;
+    const group = groupRefs.current.get(draggable.id);
+    // Commit inertia regardless of movement threshold (for smooth continuation)
+    if (group) {
+      // If there were no move events (click-only), estimate velocity from lastAngle deltas
+      let vx = draggable.lastVX;
+      let vy = draggable.lastVY;
+      if (!draggable.moved) {
+        const dtMs = Math.max(
+          1,
+          (event as PointerEvent).timeStamp - draggable.lastTs
+        );
+        const dt = dtMs / 1000;
+        // Using difference between current rotation and recorded lastAngle (likely zero) -> velocity near 0 (no inertia)
+        vx = (group.rotation.x - draggable.lastAngleX) / dt;
+        vy = (group.rotation.y - draggable.lastAngleY) / dt;
+      }
+      if (Math.abs(vx) > 0.0001 || Math.abs(vy) > 0.0001) {
+        inertia.current.set(draggable.id, { vx, vy });
+      }
+    }
+    // Only swallow click + engage guard if movement exceeded threshold
+    if (draggable.moved) {
+      if (
+        "stopPropagation" in event &&
+        typeof event.stopPropagation === "function"
+      ) {
+        event.stopPropagation();
+      }
       clickGuardRef.current = true;
       setTimeout(() => {
         clickGuardRef.current = false;
       }, 0);
-      // Commit last measured velocity to inertia store
-      const group = groupRefs.current.get(draggable.id);
-      if (group) {
-        const vx = (group as unknown as { __lastVX?: number }).__lastVX ?? 0;
-        const vy = (group as unknown as { __lastVY?: number }).__lastVY ?? 0;
-        inertia.current.set(draggable.id, { vx, vy });
-      }
     }
     draggingRef.current = null;
   };
@@ -364,10 +385,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   rollPulse,
 }) => {
   // compute grid rows to size the canvas when using a scroll container
-  const selectedCols = Math.min(
-    4,
-    Math.max(1, Math.ceil(Math.sqrt(selected.length || 1)))
-  );
+  const selectedCols = 5;
   const libraryCols = 5;
   const rows =
     mode === "selected"

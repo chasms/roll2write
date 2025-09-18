@@ -99,10 +99,13 @@
 .left-col {
   flex: 1;
   min-width: 0;
+  max-width: 100%;
 }
 
 .right-col {
   flex: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .dice-library-grid {
