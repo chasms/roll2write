@@ -44,6 +44,7 @@ New / revised user stories for the tabletop experience:
 18. As a user, I can collapse drawers (especially on mobile) to reclaim vertical space; drawers remember their open/closed state during the session.
 19. (Revised) As a user, a song is auto-created and persisted immediately when I enter a non-empty name; each added roll (new or past) updates it automatically (no manual save button). The name is immutable for now.
 20. As a user, I can cancel die creation overlay without saving (no partial die persisted).
+21. As a user, the main dice interaction area uses a single shared 3D stage (one WebGL context) to display both my selected dice and the dice library, improving performance and visual coherence. Clicking dice in the library adds them to the selected area; clicking a selected die removes it.
 
 ### Additional Acceptance Criteria (Phase 2)
 
@@ -72,6 +73,7 @@ New / revised user stories for the tabletop experience:
   - Existing stored dice lacking colorHex/pattern receive defaults colorHex="#888888" and pattern="solid" when loaded.
 - Performance:
   - Deterministic orientation calculation O(1) per die; pattern rendering purely CSS (no large images).
+  - A single WebGL context is used for the main screen (selected dice + library) to minimize GPU overhead; thumbnails in secondary UI (modals, lists) may still use lightweight previews as needed.
 
 ### Data Shape Extensions (Phase 2)
 

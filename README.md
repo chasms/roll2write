@@ -28,6 +28,7 @@ This project is configured with:
 - [ESLint rules and formatting](./eslint.config.ts)
 - [VSCode settings](./.vscode/settings.json)
 - and [Copilot Instructions](./.github/copilot-instructions.md)
+- Playwright, [Playwright MCP](https://github.com/microsoft/playwright-mcp), and the [Playwright MCP Chrome Extension](https://github.com/microsoft/playwright-mcp/blob/main/extension/README.md) - to enable Copilot to interact with and debug the frontend via the browser and development server
 
 ### Getting Started
 
