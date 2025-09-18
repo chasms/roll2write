@@ -312,7 +312,6 @@ function App() {
                 maxHeight={200}
                 rowPx={110}
                 cameraZ={10}
-                cameraFov={36}
                 rollPulse={rollPulse}
               />
               {selectedDice.length === 0 && (
@@ -446,7 +445,6 @@ function App() {
               maxHeight={260} // slightly taller library canvas
               rowPx={110}
               cameraZ={10}
-              cameraFov={36}
             />
           </div>
         </div>

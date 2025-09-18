@@ -1,6 +1,6 @@
 import { Html, useCursor } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import type { DieDefinition } from "../domain/types";
@@ -16,8 +16,9 @@ export interface DiceStageProps {
   height?: number; // fixed height (no scroll) if provided and maxHeight is undefined
   maxHeight?: number; // scroll container max height; Canvas grows to fit content and scrolls if needed
   rowPx?: number; // approximate pixels per grid row when auto-sizing canvas within scroll container
-  cameraZ?: number; // override camera distance (default 12)
-  cameraFov?: number; // override camera fov (default 40)
+  cameraZ?: number; // camera z position (orthographic depth positioning only)
+  /** Optional explicit orthographic zoom override. If not provided, derived from rowPx & cell size for stable apparent scale. */
+  cameraZoom?: number;
   rollPulse?: number; // when changed, briefly spin selected dice
 }
 
@@ -46,12 +47,15 @@ function StageScene({
   onAddFromLibrary,
   onRemoveSelected,
   rollPulse,
-}: Omit<DiceStageProps, "height">) {
-  // layout inside Canvas (centered grid per mode)
-  // Constant column count so dice size remains stable; we will scale positions instead
+}: Omit<
+  DiceStageProps,
+  "height" | "maxHeight" | "rowPx" | "cameraZ" | "cameraZoom"
+>) {
+  // Layout inside Canvas (centered grid per mode)
+  // Constant column count so dice size remains stable.
   const selectedCols = 5;
   const libraryCols = 5; // constant column count for library
-  const cellSelected = 2.4; // match library to keep dice apparent size consistent
+  const cellSelected = 2.4; // keep consistent cell size between stages
   const cellLibrary = 2.4;
   // Fixed spacing; no compression to avoid snapping when transitioning rows
   const selectedPos = useMemo(
@@ -247,139 +251,127 @@ function StageScene({
       {/* eslint-disable-next-line react/no-unknown-property */}
       <directionalLight position={[-6, -8, 6]} intensity={0.3} />
 
-      {/* Pixel-size stabilization: scale dice inversely to canvas height changes to eliminate perceived zoom */}
-      <PixelStableGroup>
-        {mode === "selected"
-          ? selected.map((sel, i) => {
-              const die = sel.die;
-              const { angle } = diePreviewSvgProps(die);
-              const [x, y, z] = selectedPos[i] ?? [0, 0, 0];
-              return (
-                <group
-                  key={sel.id}
-                  // eslint-disable-next-line react/no-unknown-property
-                  position={[x, y, z]}
-                  ref={(g) => {
-                    if (g) groupRefs.current.set(sel.id, g);
-                    else groupRefs.current.delete(sel.id);
-                  }}
-                  onPointerOver={() => {
-                    setHoveredId(sel.id);
-                  }}
-                  onPointerOut={() => {
-                    setHoveredId((h) => (h === sel.id ? null : h));
-                  }}
-                  onPointerDown={(e) => {
-                    beginDrag(e, sel.id);
-                  }}
-                  onPointerMove={onDragMove}
-                  onPointerUp={endDrag}
-                  onClick={(event: THREE.Event) => {
-                    // r3f events extend Three's Event; stop propagation to parent groups/canvas
-                    (
-                      event as unknown as { stopPropagation: () => void }
-                    ).stopPropagation();
-                    withClickGuard(() => {
-                      onRemoveSelected?.(sel.id);
-                    });
-                  }}
+      {mode === "selected"
+        ? selected.map((sel, i) => {
+            const die = sel.die;
+            const { angle } = diePreviewSvgProps(die);
+            const [x, y, z] = selectedPos[i] ?? [0, 0, 0];
+            return (
+              <group
+                key={sel.id}
+                // eslint-disable-next-line react/no-unknown-property
+                position={[x, y, z]}
+                ref={(g) => {
+                  if (g) groupRefs.current.set(sel.id, g);
+                  else groupRefs.current.delete(sel.id);
+                }}
+                onPointerOver={() => {
+                  setHoveredId(sel.id);
+                }}
+                onPointerOut={() => {
+                  setHoveredId((h) => (h === sel.id ? null : h));
+                }}
+                onPointerDown={(e) => {
+                  beginDrag(e, sel.id);
+                }}
+                onPointerMove={onDragMove}
+                onPointerUp={endDrag}
+                onClick={(event: THREE.Event) => {
+                  // r3f events extend Three's Event; stop propagation to parent groups/canvas
+                  (
+                    event as unknown as { stopPropagation: () => void }
+                  ).stopPropagation();
+                  withClickGuard(() => {
+                    onRemoveSelected?.(sel.id);
+                  });
+                }}
+              >
+                <DieMesh
+                  sides={die.sides}
+                  color={die.colorHex}
+                  pattern={die.pattern}
+                  angle={angle}
+                  appearance={die.appearance}
+                />
+                <Html
+                  center
+                  zIndexRange={[10, 0]}
+                  style={{ pointerEvents: "none" }}
                 >
-                  <DieMesh
-                    sides={die.sides}
-                    color={die.colorHex}
-                    pattern={die.pattern}
-                    angle={angle}
-                    appearance={die.appearance}
-                  />
-                  <Html
-                    center
-                    distanceFactor={9}
-                    style={{ pointerEvents: "none" }}
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "#fff",
+                      textShadow: "0 1px 2px rgba(0,0,0,0.6)",
+                    }}
                   >
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: "#fff",
-                        textShadow: "0 1px 2px rgba(0,0,0,0.6)",
-                      }}
-                    >
-                      {die.name}
-                    </div>
-                  </Html>
-                </group>
-              );
-            })
-          : library.map((die, i) => {
-              const { angle } = diePreviewSvgProps(die);
-              const [x, y, z] = libraryPos[i] ?? [0, 0, 0];
-              return (
-                <group
-                  key={die.id}
-                  // eslint-disable-next-line react/no-unknown-property
-                  position={[x, y, z]}
-                  ref={(group) => {
-                    if (group) groupRefs.current.set(die.id, group);
-                    else groupRefs.current.delete(die.id);
-                  }}
-                  onPointerOver={() => {
-                    setHoveredId(die.id);
-                  }}
-                  onPointerOut={() => {
-                    setHoveredId((h) => (h === die.id ? null : h));
-                  }}
-                  onPointerDown={(e) => {
-                    beginDrag(e, die.id);
-                  }}
-                  onPointerMove={onDragMove}
-                  onPointerUp={endDrag}
-                  onClick={(e: THREE.Event) => {
-                    (
-                      e as unknown as { stopPropagation: () => void }
-                    ).stopPropagation();
-                    withClickGuard(() => {
-                      onAddFromLibrary?.(die.id);
-                    });
-                  }}
+                    {die.name}
+                  </div>
+                </Html>
+              </group>
+            );
+          })
+        : library.map((die, i) => {
+            const { angle } = diePreviewSvgProps(die);
+            const [x, y, z] = libraryPos[i] ?? [0, 0, 0];
+            return (
+              <group
+                key={die.id}
+                // eslint-disable-next-line react/no-unknown-property
+                position={[x, y, z]}
+                ref={(group) => {
+                  if (group) groupRefs.current.set(die.id, group);
+                  else groupRefs.current.delete(die.id);
+                }}
+                onPointerOver={() => {
+                  setHoveredId(die.id);
+                }}
+                onPointerOut={() => {
+                  setHoveredId((h) => (h === die.id ? null : h));
+                }}
+                onPointerDown={(e) => {
+                  beginDrag(e, die.id);
+                }}
+                onPointerMove={onDragMove}
+                onPointerUp={endDrag}
+                onClick={(e: THREE.Event) => {
+                  (
+                    e as unknown as { stopPropagation: () => void }
+                  ).stopPropagation();
+                  withClickGuard(() => {
+                    onAddFromLibrary?.(die.id);
+                  });
+                }}
+              >
+                <DieMesh
+                  sides={die.sides}
+                  color={die.colorHex}
+                  pattern={die.pattern}
+                  angle={angle}
+                  appearance={die.appearance}
+                />
+                <Html
+                  center
+                  zIndexRange={[10, 0]}
+                  style={{ pointerEvents: "none" }}
                 >
-                  <DieMesh
-                    sides={die.sides}
-                    color={die.colorHex}
-                    pattern={die.pattern}
-                    angle={angle}
-                    appearance={die.appearance}
-                  />
-                  <Html
-                    center
-                    distanceFactor={9}
-                    style={{ pointerEvents: "none" }}
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "#d1d5db",
+                      textShadow: "0 1px 2px rgba(0,0,0,0.6)",
+                    }}
                   >
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: "#d1d5db",
-                        textShadow: "0 1px 2px rgba(0,0,0,0.6)",
-                      }}
-                    >
-                      {die.name}
-                    </div>
-                  </Html>
-                </group>
-              );
-            })}
-      </PixelStableGroup>
+                    {die.name}
+                  </div>
+                </Html>
+              </group>
+            );
+          })}
     </>
   );
-}
-
-// Wrapper that keeps a constant visual scale regardless of canvas pixel height changes
-function PixelStableGroup({ children }: { children: React.ReactNode }) {
-  const size = useThree((s) => s.size);
-  const baseHeightRef = React.useRef<number | null>(null);
-  baseHeightRef.current ??= size.height;
-  const scale = baseHeightRef.current / size.height;
-  return <group scale={[scale, scale, scale]}>{children}</group>;
 }
 
 export const DiceStage: React.FC<DiceStageProps> = ({
@@ -392,7 +384,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   maxHeight,
   rowPx = 120,
   cameraZ = 12,
-  cameraFov = 40,
+  cameraZoom,
   rollPulse,
 }) => {
   // compute grid rows to size the canvas when using a scroll container
@@ -402,23 +394,102 @@ export const DiceStage: React.FC<DiceStageProps> = ({
     mode === "selected"
       ? Math.max(1, Math.ceil((selected.length || 1) / selectedCols))
       : Math.max(1, Math.ceil((library.length || 1) / libraryCols));
-  const contentHeight = rows * rowPx + Math.round(rowPx * 0.25); // precise height + small buffer
-  // Prevent perceived zoom: keep a stable minimum canvas height so aspect ratio doesn't change
+  const baseContentHeight = rows * rowPx + Math.round(rowPx * 0.05); // target content height
+
+  // Smooth 1->2 row expansion (Option D): animate when transitioning from 1 to 2 rows only
+  const prevRowsRef = React.useRef(rows);
+  const animRef = React.useRef<{
+    from: number;
+    to: number;
+    start: number;
+    duration: number;
+  } | null>(null);
+  const [animTick, setAnimTick] = React.useState(0); // force re-render during animation
+
+  // Kick off animation when row count increases from 1 to 2
+  if (prevRowsRef.current !== rows) {
+    if (prevRowsRef.current === 1 && rows === 2) {
+      animRef.current = {
+        from: rowPx + Math.round(rowPx * 0.05), // previous single-row height
+        to: baseContentHeight,
+        start: performance.now(),
+        duration: 200, // ms
+      };
+    } else {
+      // For all other transitions (e.g., 2->3) just snap (can extend later if desired)
+      animRef.current = null;
+    }
+    prevRowsRef.current = rows;
+  }
+
+  // RAF loop for animation
+  React.useEffect(() => {
+    let raf: number;
+    const step = () => {
+      const anim = animRef.current;
+      if (!anim) return; // no animation
+      const now = performance.now();
+      const t = Math.min(1, (now - anim.start) / anim.duration);
+      // easeOutCubic progression value computed below where needed
+      if (t >= 1) {
+        animRef.current = null;
+        setAnimTick((v) => v + 1);
+        return;
+      } else {
+        setAnimTick((v) => v + 1);
+        raf = requestAnimationFrame(step);
+      }
+    };
+    if (animRef.current) {
+      raf = requestAnimationFrame(step);
+    }
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [animTick, rows]);
+
+  // Compute animated height (only distinct during the 1->2 row animation)
+  let contentHeight = baseContentHeight;
+  const activeAnim = animRef.current;
+  if (activeAnim) {
+    const now = performance.now();
+    const t = Math.min(1, (now - activeAnim.start) / activeAnim.duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    contentHeight = activeAnim.from + (activeAnim.to - activeAnim.from) * eased;
+  }
+  // Only grow container height up to content; allow scrolling only past maxHeight
   const effectiveHeight = maxHeight
-    ? Math.max(contentHeight, maxHeight)
+    ? Math.min(contentHeight, maxHeight)
     : contentHeight;
-  const containerStyle = maxHeight
-    ? { width: "100%", maxHeight, overflowY: "auto" as const }
+  const containerStyle: React.CSSProperties = maxHeight
+    ? {
+        width: "100%",
+        maxHeight,
+        overflowY: contentHeight > maxHeight ? "auto" : "hidden",
+      }
     : { width: "100%", height };
   const innerStyle = maxHeight
-    ? { height: effectiveHeight, width: "100%" }
+    ? {
+        height: effectiveHeight,
+        width: "100%",
+        transition: animRef.current ? undefined : "height 0.05s linear",
+      }
     : { width: "100%" };
+
+  // Derive orthographic zoom if not explicitly provided. This ties world cell size (2.4) to desired pixel row height.
+  const derivedZoom = cameraZoom ?? rowPx / 2.4; // pixels per world unit
 
   return (
     <div style={containerStyle}>
       <div style={innerStyle}>
         <Canvas
-          camera={{ position: [0, 0, cameraZ], fov: cameraFov }}
+          orthographic
+          camera={{
+            position: [0, 0, cameraZ],
+            zoom: derivedZoom,
+            near: -100,
+            far: 100,
+          }}
           gl={{ antialias: true, alpha: true }}
         >
           <StageScene
