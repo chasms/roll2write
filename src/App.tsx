@@ -323,7 +323,7 @@ function App() {
                 onRemoveSelected={(selectionId) => {
                   removeSelection(selectionId);
                 }}
-                maxHeight={200}
+                maxHeight={220}
                 rowPx={110}
                 cameraZ={10}
                 rollPulse={rollPulse}
@@ -334,6 +334,20 @@ function App() {
                   Click dice in the Library canvas to add them here, then click
                   a die in this canvas to remove it. Drag to rotate dice.
                 </span>
+              )}
+              {selectedDice.length >= 10 && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  style={{
+                    marginTop: "0.5rem",
+                    fontSize: "0.875rem",
+                    color: "#fbbf24", // amber-300
+                    fontWeight: 600,
+                  }}
+                >
+                  You can add up to 10 dice. Remove one to add another.
+                </div>
               )}
             </div>
             <div

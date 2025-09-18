@@ -439,6 +439,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   cameraZ = 12,
   cameraZoom,
   rollPulse,
+  rollPulseTargetId,
 }) => {
   // compute grid rows to size the canvas when using a scroll container
   const selectedCols = 5; // keep constant so Canvas height & camera stable
@@ -555,6 +556,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
             onAddFromLibrary={onAddFromLibrary}
             onRemoveSelected={onRemoveSelected}
             rollPulse={rollPulse}
+            rollPulseTargetId={rollPulseTargetId}
           />
         </Canvas>
       </div>
