@@ -11,6 +11,9 @@
     "stylelint": "stylelint '**/*.scss'",
     "stylelintfix": "stylelint '**/*.scss' --fix",
     "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
     "typecheck": "tsc --project tsconfig.app.json",
     "typewatch": "tsc --project tsconfig.app.json --watch"
   },
@@ -21,7 +24,8 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "three": "^0.179.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "vitest": "^4.0.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
@@ -52,8 +56,8 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "optionalDependencies": {
+    "@esbuild/linux-x64": "^0.25.10",
     "@rollup/rollup-linux-x64-gnu": "4.6.1",
-    "sass-embedded-linux-x64": "^1.92.1",
-    "@esbuild/linux-x64": "^0.25.10"
+    "sass-embedded-linux-x64": "^1.92.1"
   }
 }
