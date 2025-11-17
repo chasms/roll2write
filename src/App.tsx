@@ -473,11 +473,8 @@ function App() {
                 addDieToSelection(dieId);
               }}
               onEditLibraryDie={(dieId) => {
-                const die = diceById[dieId];
-                if (die) {
-                  setEditingDie(die);
-                  setShowCreateDie(true);
-                }
+                setEditingDie(diceById[dieId]);
+                setShowCreateDie(true);
               }}
               maxHeight={260} // slightly taller library canvas
               rowPx={110}

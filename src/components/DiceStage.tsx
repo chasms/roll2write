@@ -424,11 +424,7 @@ function StageScene({
                   </div>
                 </Html>
                 {isHovered && onEditLibraryDie && (
-                  <Html
-                    position={[0, 0.8, 0]}
-                    center
-                    zIndexRange={[20, 0]}
-                  >
+                  <Html position={[0, 0.8, 0]} center zIndexRange={[20, 0]}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -454,10 +450,12 @@ function StageScene({
                         transition: "background 0.2s",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "rgba(79, 70, 229, 1)";
+                        e.currentTarget.style.background =
+                          "rgba(79, 70, 229, 1)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "rgba(79, 70, 229, 0.9)";
+                        e.currentTarget.style.background =
+                          "rgba(79, 70, 229, 0.9)";
                       }}
                       title="Edit die"
                     >
