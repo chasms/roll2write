@@ -462,7 +462,8 @@ function App() {
                 marginBottom: "0.5rem",
               }}
             >
-              Click a die to add it to the Selected canvas. Drag to rotate.
+              Click a die to add it to the Selected canvas. Hover to see edit
+              button. Drag to rotate.
             </div>
             <DiceStage
               mode="library"
@@ -470,6 +471,13 @@ function App() {
               library={dice}
               onAddFromLibrary={(dieId) => {
                 addDieToSelection(dieId);
+              }}
+              onEditLibraryDie={(dieId) => {
+                const die = diceById[dieId];
+                if (die) {
+                  setEditingDie(die);
+                  setShowCreateDie(true);
+                }
               }}
               maxHeight={260} // slightly taller library canvas
               rowPx={110}

@@ -13,6 +13,7 @@ export interface DiceStageProps {
   library: DieDefinition[];
   onAddFromLibrary?: (dieId: string) => void;
   onRemoveSelected?: (selectionId: string) => void;
+  onEditLibraryDie?: (dieId: string) => void;
   height?: number; // fixed height (no scroll) if provided and maxHeight is undefined
   maxHeight?: number; // scroll container max height; Canvas grows to fit content and scrolls if needed
   rowPx?: number; // approximate pixels per grid row when auto-sizing canvas within scroll container
@@ -48,6 +49,7 @@ function StageScene({
   library,
   onAddFromLibrary,
   onRemoveSelected,
+  onEditLibraryDie,
   rollPulse,
   rollPulseTargetId,
 }: Omit<
@@ -368,6 +370,7 @@ function StageScene({
         : library.map((die, i) => {
             const { angle } = diePreviewSvgProps(die);
             const [x, y, z] = libraryPos[i] ?? [0, 0, 0];
+            const isHovered = hoveredId === die.id;
             return (
               <group
                 key={die.id}
@@ -420,6 +423,48 @@ function StageScene({
                     {die.name}
                   </div>
                 </Html>
+                {isHovered && onEditLibraryDie && (
+                  <Html
+                    position={[0, 0.8, 0]}
+                    center
+                    zIndexRange={[20, 0]}
+                  >
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clickGuardRef.current = true;
+                        onEditLibraryDie(die.id);
+                        setTimeout(() => {
+                          clickGuardRef.current = false;
+                        }, 0);
+                      }}
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                      style={{
+                        padding: "4px 8px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        color: "#fff",
+                        background: "rgba(79, 70, 229, 0.9)",
+                        border: "1px solid rgba(255,255,255,0.3)",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                        transition: "background 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "rgba(79, 70, 229, 1)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "rgba(79, 70, 229, 0.9)";
+                      }}
+                      title="Edit die"
+                    >
+                      ✏️ Edit
+                    </button>
+                  </Html>
+                )}
               </group>
             );
           })}
@@ -433,6 +478,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   library,
   onAddFromLibrary,
   onRemoveSelected,
+  onEditLibraryDie,
   height = 420,
   maxHeight,
   rowPx = 120,
@@ -555,6 +601,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
             library={library}
             onAddFromLibrary={onAddFromLibrary}
             onRemoveSelected={onRemoveSelected}
+            onEditLibraryDie={onEditLibraryDie}
             rollPulse={rollPulse}
             rollPulseTargetId={rollPulseTargetId}
           />
