@@ -60,3 +60,15 @@ or to run a continuous typecheck in an open shell:
 ```bash
 npm run typewatch
 ```
+
+##### Tests
+
+```bash
+npm run test
+```
+
+or to run a continuous typecheck in an open shell:
+
+```bash
+npm run test:watch
+```
