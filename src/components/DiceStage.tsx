@@ -1,11 +1,11 @@
-import { Html, useCursor } from "@react-three/drei";
+import { useCursor } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import type { DieDefinition } from "../domain/types";
-import { diePreviewSvgProps } from "../utils/diceAppearance";
-import { DieMesh } from "./DieMesh";
+import { LibraryDie } from "./LibraryDie";
+import { SelectedDie } from "./SelectedDie";
 
 export interface DiceStageProps {
   mode: "selected" | "library";
@@ -93,23 +93,8 @@ function StageScene({
   const [hoveredId, setHoveredId] = React.useState<string | null>(null);
   useCursor(!!hoveredId);
 
-  // Timeout ref to delay clearing hover state, preventing flicker when raycasting temporarily loses the mesh
-  const hoverClearTimeoutRef = React.useRef<number | null>(null);
-
   // Guard against duplicate onClick invocations from multiple child intersections
   const clickGuardRef = React.useRef(false);
-  const withClickGuard = React.useCallback((fn: () => void) => {
-    if (clickGuardRef.current) return;
-    clickGuardRef.current = true;
-    try {
-      fn();
-    } finally {
-      // release on next macrotask to collapse same-frame duplicates
-      setTimeout(() => {
-        clickGuardRef.current = false;
-      }, 0);
-    }
-  }, []);
 
   // Drag-to-rotate state
   const draggingRef = React.useRef<{
@@ -234,15 +219,6 @@ function StageScene({
     };
   }, []);
 
-  // Cleanup hover clear timeout on unmount
-  React.useEffect(() => {
-    return () => {
-      if (hoverClearTimeoutRef.current) {
-        clearTimeout(hoverClearTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const spinUntilRef = React.useRef<number>(0);
   const spinSpeedsRef = React.useRef<Map<string, { sx: number; sy: number }>>(
     new Map()
@@ -319,192 +295,51 @@ function StageScene({
       <directionalLight position={[-6, -8, 6]} intensity={0.3} />
 
       {mode === "selected"
-        ? selected.map((sel, i) => {
-            const die = sel.die;
-            const { angle } = diePreviewSvgProps(die);
-            const [x, y, z] = selectedPos[i] ?? [0, 0, 0];
-            return (
-              <group
-                key={sel.id}
-                // eslint-disable-next-line react/no-unknown-property
-                position={[x, y, z]}
-                ref={(g) => {
-                  if (g) groupRefs.current.set(sel.id, g);
-                  else groupRefs.current.delete(sel.id);
-                }}
-                onPointerOver={() => {
-                  setHoveredId(sel.id);
-                }}
-                onPointerOut={() => {
-                  setHoveredId((h) => (h === sel.id ? null : h));
-                }}
-                onPointerDown={(e) => {
-                  beginDrag(e, sel.id);
-                }}
-                onPointerMove={onDragMove}
-                onPointerUp={endDrag}
-                onClick={(event: THREE.Event) => {
-                  // r3f events extend Three's Event; stop propagation to parent groups/canvas
-                  (
-                    event as unknown as { stopPropagation: () => void }
-                  ).stopPropagation();
-                  withClickGuard(() => {
-                    onRemoveSelected?.(sel.id);
-                  });
-                }}
-              >
-                <DieMesh
-                  sides={die.sides}
-                  color={die.colorHex}
-                  pattern={die.pattern}
-                  angle={angle}
-                  appearance={die.appearance}
-                />
-                <Html
-                  center
-                  zIndexRange={[10, 0]}
-                  style={{ pointerEvents: "none" }}
-                >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: "#fff",
-                      textShadow: "0 1px 2px rgba(0,0,0,0.6)",
-                    }}
-                  >
-                    {die.name}
-                  </div>
-                </Html>
-              </group>
-            );
-          })
-        : library.map((die, i) => {
-            const { angle } = diePreviewSvgProps(die);
-            const [x, y, z] = libraryPos[i] ?? [0, 0, 0];
-            const isHovered = hoveredId === die.id;
-            return (
-              <group
-                key={die.id}
-                // eslint-disable-next-line react/no-unknown-property
-                position={[x, y, z]}
-                ref={(group) => {
-                  if (group) groupRefs.current.set(die.id, group);
-                  else groupRefs.current.delete(die.id);
-                }}
-                onPointerOver={() => {
-                  // Cancel any pending hover clear timeout
-                  if (hoverClearTimeoutRef.current) {
-                    clearTimeout(hoverClearTimeoutRef.current);
-                    hoverClearTimeoutRef.current = null;
-                  }
-                  setHoveredId(die.id);
-                }}
-                onPointerOut={() => {
-                  // Delay clearing hover state to prevent flicker when raycasting temporarily loses the mesh
-                  if (hoverClearTimeoutRef.current) {
-                    clearTimeout(hoverClearTimeoutRef.current);
-                  }
-                  hoverClearTimeoutRef.current = setTimeout(() => {
-                    setHoveredId((h) => (h === die.id ? null : h));
-                    hoverClearTimeoutRef.current = null;
-                  }, 50); // 50ms delay
-                }}
-                onPointerDown={(e) => {
-                  beginDrag(e, die.id);
-                }}
-                onPointerMove={onDragMove}
-                onPointerUp={endDrag}
-                onClick={(e: THREE.Event) => {
-                  (
-                    e as unknown as { stopPropagation: () => void }
-                  ).stopPropagation();
-                  withClickGuard(() => {
-                    onAddFromLibrary?.(die.id);
-                  });
-                }}
-              >
-                <DieMesh
-                  sides={die.sides}
-                  color={die.colorHex}
-                  pattern={die.pattern}
-                  angle={angle}
-                  appearance={die.appearance}
-                />
-                <Html
-                  center
-                  zIndexRange={[10, 0]}
-                  style={{ pointerEvents: "none" }}
-                >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: "#d1d5db",
-                      textShadow: "0 1px 2px rgba(0,0,0,0.6)",
-                    }}
-                  >
-                    {die.name}
-                  </div>
-                </Html>
-                {isHovered && onEditLibraryDie && (
-                  <Html
-                    position={[0, 0.8, 0]}
-                    center
-                    zIndexRange={[20, 0]}
-                    style={{ pointerEvents: "none" }}
-                  >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        clickGuardRef.current = true;
-                        onEditLibraryDie(die.id);
-                        setTimeout(() => {
-                          clickGuardRef.current = false;
-                        }, 0);
-                      }}
-                      onPointerDown={(e) => {
-                        e.stopPropagation();
-                      }}
-                      style={{
-                        padding: "4px 8px",
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        color: "#fff",
-                        background: "rgba(79, 70, 229, 0.9)",
-                        border: "1px solid rgba(255,255,255,0.3)",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-                        transition: "background 0.2s",
-                        pointerEvents: "auto",
-                      }}
-                      onMouseEnter={(e) => {
-                        // Cancel any pending hover clear timeout
-                        if (hoverClearTimeoutRef.current) {
-                          clearTimeout(hoverClearTimeoutRef.current);
-                          hoverClearTimeoutRef.current = null;
-                        }
-                        // Maintain hover state when cursor is over the button
-                        setHoveredId(die.id);
-                        e.currentTarget.style.background =
-                          "rgba(79, 70, 229, 1)";
-                      }}
-                      onMouseLeave={(e) => {
-                        // Clear hover state when leaving the button
-                        setHoveredId((h) => (h === die.id ? null : h));
-                        e.currentTarget.style.background =
-                          "rgba(79, 70, 229, 0.9)";
-                      }}
-                      title="Edit die"
-                    >
-                      ✏️ Edit
-                    </button>
-                  </Html>
-                )}
-              </group>
-            );
-          })}
+        ? selected.map((sel, i) => (
+            <SelectedDie
+              key={sel.id}
+              selectionId={sel.id}
+              die={sel.die}
+              position={selectedPos[i] ?? [0, 0, 0]}
+              clickGuardRef={clickGuardRef}
+              groupRefs={groupRefs}
+              onPointerOver={() => {
+                setHoveredId(sel.id);
+              }}
+              onPointerOut={() => {
+                setHoveredId((h) => (h === sel.id ? null : h));
+              }}
+              onPointerDown={(e) => {
+                beginDrag(e, sel.id);
+              }}
+              onPointerMove={onDragMove}
+              onPointerUp={endDrag}
+              onRemoveSelected={onRemoveSelected}
+            />
+          ))
+        : library.map((die, i) => (
+            <LibraryDie
+              key={die.id}
+              die={die}
+              position={libraryPos[i] ?? [0, 0, 0]}
+              isHovered={hoveredId === die.id}
+              clickGuardRef={clickGuardRef}
+              groupRefs={groupRefs}
+              onPointerOver={() => {
+                setHoveredId(die.id);
+              }}
+              onPointerOut={() => {
+                setHoveredId((h) => (h === die.id ? null : h));
+              }}
+              onPointerDown={(e) => {
+                beginDrag(e, die.id);
+              }}
+              onPointerMove={onDragMove}
+              onPointerUp={endDrag}
+              onAddFromLibrary={onAddFromLibrary}
+              onEditLibraryDie={onEditLibraryDie}
+            />
+          ))}
     </>
   );
 }
