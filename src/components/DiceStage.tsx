@@ -6,6 +6,21 @@ import * as THREE from "three";
 import type { DieDefinition } from "../domain/types";
 import { LibraryDie } from "./LibraryDie";
 import { SelectedDie } from "./SelectedDie";
+import {
+  applyDamping,
+  calculateAngularVelocity,
+  calculateContentHeight,
+  calculateDampingFactor,
+  calculateEffectiveHeight,
+  calculateGridRows,
+  calculateRotationFromDrag,
+  clampRotation,
+  deriveCameraZoom,
+  generateRandomSpinSpeed,
+  gridPositions,
+  interpolateHeight,
+  shouldStopInertia,
+} from "./DiceStage.utils";
 
 export interface DiceStageProps {
   mode: "selected" | "library";
@@ -23,24 +38,6 @@ export interface DiceStageProps {
   rollPulse?: number; // when changed, briefly spin selected dice
   /** If provided, only the matching selection id spins for this pulse; null spins all; undefined uses default (all). */
   rollPulseTargetId?: string | null;
-}
-
-function gridPositions(
-  count: number,
-  cols: number,
-  cell: number,
-  originX: number,
-  originY = 0
-) {
-  const poses: [number, number, number][] = [];
-  for (let i = 0; i < count; i++) {
-    const r = Math.floor(i / cols);
-    const c = i % cols;
-    const x = originX + (c - (cols - 1) / 2) * cell;
-    const y = originY - (r - 0) * cell;
-    poses.push([x, y, 0]);
-  }
-  return poses;
 }
 
 function StageScene({
@@ -106,16 +103,16 @@ function StageScene({
     moved: boolean;
     lastAngleX: number;
     lastAngleY: number;
-    lastTs: number; // milliseconds
-    lastVX: number; // last computed angular velocity x (rad/s)
-    lastVY: number; // last computed angular velocity y (rad/s)
+    lastTimestamp: number; // milliseconds
+    lastVelocityX: number; // last computed angular velocity x (rad/s)
+    lastVelocityY: number; // last computed angular velocity y (rad/s)
   } | null>(null);
   // Single ref map for this canvas' dice
   const groupRefs = React.useRef<Map<string, THREE.Group>>(new Map());
   // Inertial angular velocities (radians per second) for this canvas
-  const inertia = React.useRef<Map<string, { vx: number; vy: number }>>(
-    new Map()
-  );
+  const inertia = React.useRef<
+    Map<string, { velocityX: number; velocityY: number }>
+  >(new Map());
   const beginDrag = (event: ThreeEvent<PointerEvent>, id: string) => {
     const group = groupRefs.current.get(id) ?? null;
     if (!group) return; // shouldn't happen
@@ -131,9 +128,9 @@ function StageScene({
       moved: false,
       lastAngleX: group.rotation.x,
       lastAngleY: group.rotation.y,
-      lastTs: event.timeStamp,
-      lastVX: 0,
-      lastVY: 0,
+      lastTimestamp: event.timeStamp,
+      lastVelocityX: 0,
+      lastVelocityY: 0,
     };
   };
 
@@ -147,25 +144,37 @@ function StageScene({
     }
     const group = groupRefs.current.get(draggable.id);
     if (!group) return;
-    const dx = event.clientX - draggable.startX;
-    const dy = event.clientY - draggable.startY;
-    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) draggable.moved = true;
+    const deltaX = event.clientX - draggable.startX;
+    const deltaY = event.clientY - draggable.startY;
+    if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) draggable.moved = true;
     const sensitivity = 0.01;
-    const nextY = draggable.startRotY + dx * sensitivity;
-    const nextX = draggable.startRotX + dy * sensitivity;
-    group.rotation.y = nextY;
+    const { rotationX, rotationY } = calculateRotationFromDrag(
+      deltaX,
+      deltaY,
+      draggable.startRotX,
+      draggable.startRotY,
+      sensitivity
+    );
+    group.rotation.y = rotationY;
     // clamp x tilt a bit so it doesn't flip wildly
-    group.rotation.x = Math.max(-1.2, Math.min(1.2, nextX));
+    group.rotation.x = clampRotation(rotationX, -1.2, 1.2);
     // Update instantaneous angular velocity for inertia
-    const dtMs = Math.max(1, event.timeStamp - draggable.lastTs);
-    const dt = dtMs / 1000;
-    const vx = (group.rotation.x - draggable.lastAngleX) / dt; // rad/s
-    const vy = (group.rotation.y - draggable.lastAngleY) / dt; // rad/s
+    const deltaTimeMs = event.timeStamp - draggable.lastTimestamp;
+    const velocityX = calculateAngularVelocity(
+      group.rotation.x,
+      draggable.lastAngleX,
+      deltaTimeMs
+    );
+    const velocityY = calculateAngularVelocity(
+      group.rotation.y,
+      draggable.lastAngleY,
+      deltaTimeMs
+    );
     draggable.lastAngleX = group.rotation.x;
     draggable.lastAngleY = group.rotation.y;
-    draggable.lastTs = event.timeStamp;
-    draggable.lastVX = vx;
-    draggable.lastVY = vy;
+    draggable.lastTimestamp = event.timeStamp;
+    draggable.lastVelocityX = velocityX;
+    draggable.lastVelocityY = velocityY;
   };
   const endDrag = (event: ThreeEvent<PointerEvent> | PointerEvent) => {
     const draggable = draggingRef.current;
@@ -174,20 +183,25 @@ function StageScene({
     // Commit inertia regardless of movement threshold (for smooth continuation)
     if (group) {
       // If there were no move events (click-only), estimate velocity from lastAngle deltas
-      let vx = draggable.lastVX;
-      let vy = draggable.lastVY;
+      let velocityX = draggable.lastVelocityX;
+      let velocityY = draggable.lastVelocityY;
       if (!draggable.moved) {
-        const dtMs = Math.max(
-          1,
-          (event as PointerEvent).timeStamp - draggable.lastTs
-        );
-        const dt = dtMs / 1000;
+        const deltaTimeMs =
+          (event as PointerEvent).timeStamp - draggable.lastTimestamp;
         // Using difference between current rotation and recorded lastAngle (likely zero) -> velocity near 0 (no inertia)
-        vx = (group.rotation.x - draggable.lastAngleX) / dt;
-        vy = (group.rotation.y - draggable.lastAngleY) / dt;
+        velocityX = calculateAngularVelocity(
+          group.rotation.x,
+          draggable.lastAngleX,
+          deltaTimeMs
+        );
+        velocityY = calculateAngularVelocity(
+          group.rotation.y,
+          draggable.lastAngleY,
+          deltaTimeMs
+        );
       }
-      if (Math.abs(vx) > 0.0001 || Math.abs(vy) > 0.0001) {
-        inertia.current.set(draggable.id, { vx, vy });
+      if (!shouldStopInertia(velocityX, velocityY, 0.0001)) {
+        inertia.current.set(draggable.id, { velocityX, velocityY });
       }
     }
     // Only swallow click + engage guard if movement exceeded threshold
@@ -220,9 +234,9 @@ function StageScene({
   }, []);
 
   const spinUntilRef = React.useRef<number>(0);
-  const spinSpeedsRef = React.useRef<Map<string, { sx: number; sy: number }>>(
-    new Map()
-  );
+  const spinSpeedsRef = React.useRef<
+    Map<string, { spinSpeedX: number; spinSpeedY: number }>
+  >(new Map());
   const selectedRef = React.useRef(selected);
   React.useEffect(() => {
     selectedRef.current = selected;
@@ -234,13 +248,13 @@ function StageScene({
     const list = selectedRef.current;
     if (list.length === 0) return;
     spinUntilRef.current = performance.now() + 900;
-    const speeds = new Map<string, { sx: number; sy: number }>();
+    const speeds = new Map<
+      string,
+      { spinSpeedX: number; spinSpeedY: number }
+    >();
     const assign = (id: string) => {
-      const dirY = Math.random() < 0.5 ? -1 : 1;
-      const dirX = Math.random() < 0.5 ? -1 : 1;
-      const sy = THREE.MathUtils.lerp(2.2, 7.8, Math.random()) * dirY; // rad/s
-      const sx = THREE.MathUtils.lerp(0.2, 1.0, Math.random()) * dirX; // rad/s
-      speeds.set(id, { sx, sy });
+      const spinSpeed = generateRandomSpinSpeed();
+      speeds.set(id, spinSpeed);
     };
     if (rollPulseTargetId === null) {
       // Pulse all selected dice
@@ -259,27 +273,35 @@ function StageScene({
   useFrame((_, delta) => {
     const now = performance.now();
     if (now < spinUntilRef.current && mode === "selected") {
-      groupRefs.current.forEach((g, id) => {
-        const sp = spinSpeedsRef.current.get(id);
-        const sy = sp?.sy ?? 5.2;
-        const sx = sp?.sx ?? 0;
-        g.rotation.y += delta * sy;
-        g.rotation.x = Math.max(-1.2, Math.min(1.2, g.rotation.x + delta * sx));
+      groupRefs.current.forEach((group, id) => {
+        const spinSpeed = spinSpeedsRef.current.get(id);
+        const spinSpeedY = spinSpeed?.spinSpeedY ?? 5.2;
+        const spinSpeedX = spinSpeed?.spinSpeedX ?? 0;
+        group.rotation.y += delta * spinSpeedY;
+        group.rotation.x = clampRotation(
+          group.rotation.x + delta * spinSpeedX,
+          -1.2,
+          1.2
+        );
       });
     }
     // Apply inertia with exponential damping
-    const dampFactor = Math.pow(0.1, delta); // ~0.1x per second
-    inertia.current.forEach((v, id) => {
-      const g = groupRefs.current.get(id);
-      if (!g) {
+    const dampFactor = calculateDampingFactor(delta);
+    inertia.current.forEach((velocity, id) => {
+      const group = groupRefs.current.get(id);
+      if (!group) {
         inertia.current.delete(id);
         return;
       }
-      g.rotation.x = Math.max(-1.2, Math.min(1.2, g.rotation.x + v.vx * delta));
-      g.rotation.y += v.vy * delta;
-      v.vx *= dampFactor;
-      v.vy *= dampFactor;
-      if (Math.abs(v.vx) < 0.01 && Math.abs(v.vy) < 0.01) {
+      group.rotation.x = clampRotation(
+        group.rotation.x + velocity.velocityX * delta,
+        -1.2,
+        1.2
+      );
+      group.rotation.y += velocity.velocityY * delta;
+      velocity.velocityX = applyDamping(velocity.velocityX, dampFactor);
+      velocity.velocityY = applyDamping(velocity.velocityY, dampFactor);
+      if (shouldStopInertia(velocity.velocityX, velocity.velocityY, 0.01)) {
         inertia.current.delete(id);
       }
     });
@@ -362,11 +384,10 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   // compute grid rows to size the canvas when using a scroll container
   const selectedCols = 5; // keep constant so Canvas height & camera stable
   const libraryCols = 5;
-  const rows =
-    mode === "selected"
-      ? Math.max(1, Math.ceil((selected.length || 1) / selectedCols))
-      : Math.max(1, Math.ceil((library.length || 1) / libraryCols));
-  const baseContentHeight = rows * rowPx; // target content height (no extra padding to avoid cumulative jumps)
+  const itemCount = mode === "selected" ? selected.length : library.length;
+  const cols = mode === "selected" ? selectedCols : libraryCols;
+  const rows = calculateGridRows(itemCount, cols);
+  const baseContentHeight = calculateContentHeight(rows, rowPx);
 
   // Smooth 1->2 row expansion (Option D): animate when transitioning from 1 to 2 rows only
   const prevRowsRef = React.useRef(rows);
@@ -425,14 +446,14 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   const activeAnim = animRef.current;
   if (activeAnim) {
     const now = performance.now();
-    const t = Math.min(1, (now - activeAnim.start) / activeAnim.duration);
-    const eased = 1 - Math.pow(1 - t, 3);
-    contentHeight = activeAnim.from + (activeAnim.to - activeAnim.from) * eased;
+    const progress = Math.min(
+      1,
+      (now - activeAnim.start) / activeAnim.duration
+    );
+    contentHeight = interpolateHeight(activeAnim.from, activeAnim.to, progress);
   }
   // Only grow container height up to content; allow scrolling only past maxHeight
-  const effectiveHeight = maxHeight
-    ? Math.min(contentHeight, maxHeight)
-    : contentHeight;
+  const effectiveHeight = calculateEffectiveHeight(contentHeight, maxHeight);
   const containerStyle: React.CSSProperties = maxHeight
     ? {
         width: "100%",
@@ -452,7 +473,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
     : { width: "100%" };
 
   // Derive orthographic zoom if not explicitly provided. This ties world cell size (2.4) to desired pixel row height.
-  const derivedZoom = cameraZoom ?? rowPx / 2.4; // pixels per world unit
+  const derivedZoom = cameraZoom ?? deriveCameraZoom(rowPx, 2.4);
 
   return (
     <div style={containerStyle}>
