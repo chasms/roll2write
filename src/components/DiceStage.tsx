@@ -93,6 +93,9 @@ function StageScene({
   const [hoveredId, setHoveredId] = React.useState<string | null>(null);
   useCursor(!!hoveredId);
 
+  // Timeout ref to delay clearing hover state, preventing flicker when raycasting temporarily loses the mesh
+  const hoverClearTimeoutRef = React.useRef<number | null>(null);
+
   // Guard against duplicate onClick invocations from multiple child intersections
   const clickGuardRef = React.useRef(false);
   const withClickGuard = React.useCallback((fn: () => void) => {
@@ -228,6 +231,15 @@ function StageScene({
     return () => {
       window.removeEventListener("pointerup", handler);
       window.removeEventListener("pointercancel", handler);
+    };
+  }, []);
+
+  // Cleanup hover clear timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (hoverClearTimeoutRef.current) {
+        clearTimeout(hoverClearTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -381,10 +393,22 @@ function StageScene({
                   else groupRefs.current.delete(die.id);
                 }}
                 onPointerOver={() => {
+                  // Cancel any pending hover clear timeout
+                  if (hoverClearTimeoutRef.current) {
+                    clearTimeout(hoverClearTimeoutRef.current);
+                    hoverClearTimeoutRef.current = null;
+                  }
                   setHoveredId(die.id);
                 }}
                 onPointerOut={() => {
-                  setHoveredId((h) => (h === die.id ? null : h));
+                  // Delay clearing hover state to prevent flicker when raycasting temporarily loses the mesh
+                  if (hoverClearTimeoutRef.current) {
+                    clearTimeout(hoverClearTimeoutRef.current);
+                  }
+                  hoverClearTimeoutRef.current = setTimeout(() => {
+                    setHoveredId((h) => (h === die.id ? null : h));
+                    hoverClearTimeoutRef.current = null;
+                  }, 50); // 50ms delay
                 }}
                 onPointerDown={(e) => {
                   beginDrag(e, die.id);
@@ -456,6 +480,11 @@ function StageScene({
                         pointerEvents: "auto",
                       }}
                       onMouseEnter={(e) => {
+                        // Cancel any pending hover clear timeout
+                        if (hoverClearTimeoutRef.current) {
+                          clearTimeout(hoverClearTimeoutRef.current);
+                          hoverClearTimeoutRef.current = null;
+                        }
                         // Maintain hover state when cursor is over the button
                         setHoveredId(die.id);
                         e.currentTarget.style.background =
