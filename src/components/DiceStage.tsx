@@ -424,7 +424,12 @@ function StageScene({
                   </div>
                 </Html>
                 {isHovered && onEditLibraryDie && (
-                  <Html position={[0, 0.8, 0]} center zIndexRange={[20, 0]}>
+                  <Html
+                    position={[0, 0.8, 0]}
+                    center
+                    zIndexRange={[20, 0]}
+                    style={{ pointerEvents: "none" }}
+                  >
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -448,6 +453,7 @@ function StageScene({
                         cursor: "pointer",
                         boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
                         transition: "background 0.2s",
+                        pointerEvents: "auto",
                       }}
                       onMouseEnter={(e) => {
                         // Maintain hover state when cursor is over the button
