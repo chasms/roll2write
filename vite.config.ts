@@ -2,7 +2,7 @@
 
 import react from "@vitejs/plugin-react-swc";
 import autoprefixer from "autoprefixer";
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import devtoolsJson from "vite-plugin-devtools-json";
 import sassDts from "vite-plugin-sass-dts";
 

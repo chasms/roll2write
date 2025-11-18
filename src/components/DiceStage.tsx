@@ -450,10 +450,14 @@ function StageScene({
                         transition: "background 0.2s",
                       }}
                       onMouseEnter={(e) => {
+                        // Maintain hover state when cursor is over the button
+                        setHoveredId(die.id);
                         e.currentTarget.style.background =
                           "rgba(79, 70, 229, 1)";
                       }}
                       onMouseLeave={(e) => {
+                        // Clear hover state when leaving the button
+                        setHoveredId((h) => (h === die.id ? null : h));
                         e.currentTarget.style.background =
                           "rgba(79, 70, 229, 0.9)";
                       }}
