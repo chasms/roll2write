@@ -24,7 +24,7 @@ jobs:
 
       - name: Test
         run: |
-          npm run test:run
+          npm run test
 
       - name: Types
         run: |
