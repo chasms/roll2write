@@ -11,9 +11,9 @@
     "stylelint": "stylelint '**/*.scss'",
     "stylelintfix": "stylelint '**/*.scss' --fix",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest run",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --project tsconfig.app.json",
     "typewatch": "tsc --project tsconfig.app.json --watch"
   },
