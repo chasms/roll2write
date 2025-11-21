@@ -1,5 +1,5 @@
 {
-  "servers": {
+  "mcpServers": {
     "eslint": {
       "type": "stdio",
       "command": "npx",
@@ -10,13 +10,10 @@
       "command": "npx",
       "args": ["stylelint-mcp@latest"]
     },
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest", "--extension"]
-    },
     "chrome-devtools": {
+      "type": "stdio",
       "command": "npx",
-      "args": ["chrome-devtools-mcp@latest"]
+      "args": ["chrome-devtools-mcp@latest", "--isolated"]
     }
   }
 }
