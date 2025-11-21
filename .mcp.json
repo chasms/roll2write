@@ -1,5 +1,5 @@
 {
-  "servers": {
+  "mcpServers": {
     "eslint": {
       "type": "stdio",
       "command": "npx",

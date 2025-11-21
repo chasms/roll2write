@@ -1,11 +1,26 @@
-import { Html, useCursor } from "@react-three/drei";
+import { useCursor } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import type { DieDefinition } from "../domain/types";
-import { diePreviewSvgProps } from "../utils/diceAppearance";
-import { DieMesh } from "./DieMesh";
+import {
+  applyDamping,
+  calculateAngularVelocity,
+  calculateContentHeight,
+  calculateDampingFactor,
+  calculateEffectiveHeight,
+  calculateGridRows,
+  calculateRotationFromDrag,
+  clampRotation,
+  deriveCameraZoom,
+  generateRandomSpinSpeed,
+  gridPositions,
+  interpolateHeight,
+  shouldStopInertia,
+} from "./DiceStage.utils";
+import { LibraryDie } from "./LibraryDie";
+import { SelectedDie } from "./SelectedDie";
 
 export interface DiceStageProps {
   mode: "selected" | "library";
@@ -13,6 +28,7 @@ export interface DiceStageProps {
   library: DieDefinition[];
   onAddFromLibrary?: (dieId: string) => void;
   onRemoveSelected?: (selectionId: string) => void;
+  onEditLibraryDie?: (dieId: string) => void;
   height?: number; // fixed height (no scroll) if provided and maxHeight is undefined
   maxHeight?: number; // scroll container max height; Canvas grows to fit content and scrolls if needed
   rowPx?: number; // approximate pixels per grid row when auto-sizing canvas within scroll container
@@ -24,30 +40,13 @@ export interface DiceStageProps {
   rollPulseTargetId?: string | null;
 }
 
-function gridPositions(
-  count: number,
-  cols: number,
-  cell: number,
-  originX: number,
-  originY = 0
-) {
-  const poses: [number, number, number][] = [];
-  for (let i = 0; i < count; i++) {
-    const r = Math.floor(i / cols);
-    const c = i % cols;
-    const x = originX + (c - (cols - 1) / 2) * cell;
-    const y = originY - (r - 0) * cell;
-    poses.push([x, y, 0]);
-  }
-  return poses;
-}
-
 function StageScene({
   mode,
   selected,
   library,
   onAddFromLibrary,
   onRemoveSelected,
+  onEditLibraryDie,
   rollPulse,
   rollPulseTargetId,
 }: Omit<
@@ -93,17 +92,17 @@ function StageScene({
 
   // Guard against duplicate onClick invocations from multiple child intersections
   const clickGuardRef = React.useRef(false);
-  const withClickGuard = React.useCallback((fn: () => void) => {
-    if (clickGuardRef.current) return;
-    clickGuardRef.current = true;
-    try {
-      fn();
-    } finally {
-      // release on next macrotask to collapse same-frame duplicates
-      setTimeout(() => {
-        clickGuardRef.current = false;
-      }, 0);
-    }
+
+  // Ref to track delayed hover clear timeout (prevents edit button from disappearing during transition)
+  const hoverClearTimeoutRef = React.useRef<number | null>(null);
+
+  // Clean up hover clear timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (hoverClearTimeoutRef.current !== null) {
+        clearTimeout(hoverClearTimeoutRef.current);
+      }
+    };
   }, []);
 
   // Drag-to-rotate state
@@ -116,16 +115,16 @@ function StageScene({
     moved: boolean;
     lastAngleX: number;
     lastAngleY: number;
-    lastTs: number; // milliseconds
-    lastVX: number; // last computed angular velocity x (rad/s)
-    lastVY: number; // last computed angular velocity y (rad/s)
+    lastTimestamp: number; // milliseconds
+    lastVelocityX: number; // last computed angular velocity x (rad/s)
+    lastVelocityY: number; // last computed angular velocity y (rad/s)
   } | null>(null);
   // Single ref map for this canvas' dice
   const groupRefs = React.useRef<Map<string, THREE.Group>>(new Map());
   // Inertial angular velocities (radians per second) for this canvas
-  const inertia = React.useRef<Map<string, { vx: number; vy: number }>>(
-    new Map()
-  );
+  const inertia = React.useRef<
+    Map<string, { velocityX: number; velocityY: number }>
+  >(new Map());
   const beginDrag = (event: ThreeEvent<PointerEvent>, id: string) => {
     const group = groupRefs.current.get(id) ?? null;
     if (!group) return; // shouldn't happen
@@ -141,9 +140,9 @@ function StageScene({
       moved: false,
       lastAngleX: group.rotation.x,
       lastAngleY: group.rotation.y,
-      lastTs: event.timeStamp,
-      lastVX: 0,
-      lastVY: 0,
+      lastTimestamp: event.timeStamp,
+      lastVelocityX: 0,
+      lastVelocityY: 0,
     };
   };
 
@@ -157,25 +156,37 @@ function StageScene({
     }
     const group = groupRefs.current.get(draggable.id);
     if (!group) return;
-    const dx = event.clientX - draggable.startX;
-    const dy = event.clientY - draggable.startY;
-    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) draggable.moved = true;
+    const deltaX = event.clientX - draggable.startX;
+    const deltaY = event.clientY - draggable.startY;
+    if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) draggable.moved = true;
     const sensitivity = 0.01;
-    const nextY = draggable.startRotY + dx * sensitivity;
-    const nextX = draggable.startRotX + dy * sensitivity;
-    group.rotation.y = nextY;
+    const { rotationX, rotationY } = calculateRotationFromDrag(
+      deltaX,
+      deltaY,
+      draggable.startRotX,
+      draggable.startRotY,
+      sensitivity
+    );
+    group.rotation.y = rotationY;
     // clamp x tilt a bit so it doesn't flip wildly
-    group.rotation.x = Math.max(-1.2, Math.min(1.2, nextX));
+    group.rotation.x = clampRotation(rotationX, -1.2, 1.2);
     // Update instantaneous angular velocity for inertia
-    const dtMs = Math.max(1, event.timeStamp - draggable.lastTs);
-    const dt = dtMs / 1000;
-    const vx = (group.rotation.x - draggable.lastAngleX) / dt; // rad/s
-    const vy = (group.rotation.y - draggable.lastAngleY) / dt; // rad/s
+    const deltaTimeMs = event.timeStamp - draggable.lastTimestamp;
+    const velocityX = calculateAngularVelocity(
+      group.rotation.x,
+      draggable.lastAngleX,
+      deltaTimeMs
+    );
+    const velocityY = calculateAngularVelocity(
+      group.rotation.y,
+      draggable.lastAngleY,
+      deltaTimeMs
+    );
     draggable.lastAngleX = group.rotation.x;
     draggable.lastAngleY = group.rotation.y;
-    draggable.lastTs = event.timeStamp;
-    draggable.lastVX = vx;
-    draggable.lastVY = vy;
+    draggable.lastTimestamp = event.timeStamp;
+    draggable.lastVelocityX = velocityX;
+    draggable.lastVelocityY = velocityY;
   };
   const endDrag = (event: ThreeEvent<PointerEvent> | PointerEvent) => {
     const draggable = draggingRef.current;
@@ -184,20 +195,25 @@ function StageScene({
     // Commit inertia regardless of movement threshold (for smooth continuation)
     if (group) {
       // If there were no move events (click-only), estimate velocity from lastAngle deltas
-      let vx = draggable.lastVX;
-      let vy = draggable.lastVY;
+      let velocityX = draggable.lastVelocityX;
+      let velocityY = draggable.lastVelocityY;
       if (!draggable.moved) {
-        const dtMs = Math.max(
-          1,
-          (event as PointerEvent).timeStamp - draggable.lastTs
-        );
-        const dt = dtMs / 1000;
+        const deltaTimeMs =
+          (event as PointerEvent).timeStamp - draggable.lastTimestamp;
         // Using difference between current rotation and recorded lastAngle (likely zero) -> velocity near 0 (no inertia)
-        vx = (group.rotation.x - draggable.lastAngleX) / dt;
-        vy = (group.rotation.y - draggable.lastAngleY) / dt;
+        velocityX = calculateAngularVelocity(
+          group.rotation.x,
+          draggable.lastAngleX,
+          deltaTimeMs
+        );
+        velocityY = calculateAngularVelocity(
+          group.rotation.y,
+          draggable.lastAngleY,
+          deltaTimeMs
+        );
       }
-      if (Math.abs(vx) > 0.0001 || Math.abs(vy) > 0.0001) {
-        inertia.current.set(draggable.id, { vx, vy });
+      if (!shouldStopInertia(velocityX, velocityY, 0.0001)) {
+        inertia.current.set(draggable.id, { velocityX, velocityY });
       }
     }
     // Only swallow click + engage guard if movement exceeded threshold
@@ -230,9 +246,9 @@ function StageScene({
   }, []);
 
   const spinUntilRef = React.useRef<number>(0);
-  const spinSpeedsRef = React.useRef<Map<string, { sx: number; sy: number }>>(
-    new Map()
-  );
+  const spinSpeedsRef = React.useRef<
+    Map<string, { spinSpeedX: number; spinSpeedY: number }>
+  >(new Map());
   const selectedRef = React.useRef(selected);
   React.useEffect(() => {
     selectedRef.current = selected;
@@ -244,13 +260,13 @@ function StageScene({
     const list = selectedRef.current;
     if (list.length === 0) return;
     spinUntilRef.current = performance.now() + 900;
-    const speeds = new Map<string, { sx: number; sy: number }>();
+    const speeds = new Map<
+      string,
+      { spinSpeedX: number; spinSpeedY: number }
+    >();
     const assign = (id: string) => {
-      const dirY = Math.random() < 0.5 ? -1 : 1;
-      const dirX = Math.random() < 0.5 ? -1 : 1;
-      const sy = THREE.MathUtils.lerp(2.2, 7.8, Math.random()) * dirY; // rad/s
-      const sx = THREE.MathUtils.lerp(0.2, 1.0, Math.random()) * dirX; // rad/s
-      speeds.set(id, { sx, sy });
+      const spinSpeed = generateRandomSpinSpeed();
+      speeds.set(id, spinSpeed);
     };
     if (rollPulseTargetId === null) {
       // Pulse all selected dice
@@ -269,27 +285,35 @@ function StageScene({
   useFrame((_, delta) => {
     const now = performance.now();
     if (now < spinUntilRef.current && mode === "selected") {
-      groupRefs.current.forEach((g, id) => {
-        const sp = spinSpeedsRef.current.get(id);
-        const sy = sp?.sy ?? 5.2;
-        const sx = sp?.sx ?? 0;
-        g.rotation.y += delta * sy;
-        g.rotation.x = Math.max(-1.2, Math.min(1.2, g.rotation.x + delta * sx));
+      groupRefs.current.forEach((group, id) => {
+        const spinSpeed = spinSpeedsRef.current.get(id);
+        const spinSpeedY = spinSpeed?.spinSpeedY ?? 5.2;
+        const spinSpeedX = spinSpeed?.spinSpeedX ?? 0;
+        group.rotation.y += delta * spinSpeedY;
+        group.rotation.x = clampRotation(
+          group.rotation.x + delta * spinSpeedX,
+          -1.2,
+          1.2
+        );
       });
     }
     // Apply inertia with exponential damping
-    const dampFactor = Math.pow(0.1, delta); // ~0.1x per second
-    inertia.current.forEach((v, id) => {
-      const g = groupRefs.current.get(id);
-      if (!g) {
+    const dampFactor = calculateDampingFactor(delta);
+    inertia.current.forEach((velocity, id) => {
+      const group = groupRefs.current.get(id);
+      if (!group) {
         inertia.current.delete(id);
         return;
       }
-      g.rotation.x = Math.max(-1.2, Math.min(1.2, g.rotation.x + v.vx * delta));
-      g.rotation.y += v.vy * delta;
-      v.vx *= dampFactor;
-      v.vy *= dampFactor;
-      if (Math.abs(v.vx) < 0.01 && Math.abs(v.vy) < 0.01) {
+      group.rotation.x = clampRotation(
+        group.rotation.x + velocity.velocityX * delta,
+        -1.2,
+        1.2
+      );
+      group.rotation.y += velocity.velocityY * delta;
+      velocity.velocityX = applyDamping(velocity.velocityX, dampFactor);
+      velocity.velocityY = applyDamping(velocity.velocityY, dampFactor);
+      if (shouldStopInertia(velocity.velocityX, velocity.velocityY, 0.01)) {
         inertia.current.delete(id);
       }
     });
@@ -305,124 +329,62 @@ function StageScene({
       <directionalLight position={[-6, -8, 6]} intensity={0.3} />
 
       {mode === "selected"
-        ? selected.map((sel, i) => {
-            const die = sel.die;
-            const { angle } = diePreviewSvgProps(die);
-            const [x, y, z] = selectedPos[i] ?? [0, 0, 0];
-            return (
-              <group
-                key={sel.id}
-                // eslint-disable-next-line react/no-unknown-property
-                position={[x, y, z]}
-                ref={(g) => {
-                  if (g) groupRefs.current.set(sel.id, g);
-                  else groupRefs.current.delete(sel.id);
-                }}
-                onPointerOver={() => {
-                  setHoveredId(sel.id);
-                }}
-                onPointerOut={() => {
-                  setHoveredId((h) => (h === sel.id ? null : h));
-                }}
-                onPointerDown={(e) => {
-                  beginDrag(e, sel.id);
-                }}
-                onPointerMove={onDragMove}
-                onPointerUp={endDrag}
-                onClick={(event: THREE.Event) => {
-                  // r3f events extend Three's Event; stop propagation to parent groups/canvas
-                  (
-                    event as unknown as { stopPropagation: () => void }
-                  ).stopPropagation();
-                  withClickGuard(() => {
-                    onRemoveSelected?.(sel.id);
-                  });
-                }}
-              >
-                <DieMesh
-                  sides={die.sides}
-                  color={die.colorHex}
-                  pattern={die.pattern}
-                  angle={angle}
-                  appearance={die.appearance}
-                />
-                <Html
-                  center
-                  zIndexRange={[10, 0]}
-                  style={{ pointerEvents: "none" }}
-                >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: "#fff",
-                      textShadow: "0 1px 2px rgba(0,0,0,0.6)",
-                    }}
-                  >
-                    {die.name}
-                  </div>
-                </Html>
-              </group>
-            );
-          })
-        : library.map((die, i) => {
-            const { angle } = diePreviewSvgProps(die);
-            const [x, y, z] = libraryPos[i] ?? [0, 0, 0];
-            return (
-              <group
-                key={die.id}
-                // eslint-disable-next-line react/no-unknown-property
-                position={[x, y, z]}
-                ref={(group) => {
-                  if (group) groupRefs.current.set(die.id, group);
-                  else groupRefs.current.delete(die.id);
-                }}
-                onPointerOver={() => {
-                  setHoveredId(die.id);
-                }}
-                onPointerOut={() => {
+        ? selected.map((sel, i) => (
+            <SelectedDie
+              key={sel.id}
+              selectionId={sel.id}
+              die={sel.die}
+              position={selectedPos[i] ?? [0, 0, 0]}
+              clickGuardRef={clickGuardRef}
+              groupRefs={groupRefs}
+              onPointerOver={() => {
+                setHoveredId(sel.id);
+              }}
+              onPointerOut={() => {
+                setHoveredId((h) => (h === sel.id ? null : h));
+              }}
+              onPointerDown={(e) => {
+                beginDrag(e, sel.id);
+              }}
+              onPointerMove={onDragMove}
+              onPointerUp={endDrag}
+              onRemoveSelected={onRemoveSelected}
+            />
+          ))
+        : library.map((die, i) => (
+            <LibraryDie
+              key={die.id}
+              die={die}
+              position={libraryPos[i] ?? [0, 0, 0]}
+              isHovered={hoveredId === die.id}
+              clickGuardRef={clickGuardRef}
+              groupRefs={groupRefs}
+              onPointerOver={() => {
+                // Cancel any pending hover clear timeout
+                if (hoverClearTimeoutRef.current !== null) {
+                  clearTimeout(hoverClearTimeoutRef.current);
+                  hoverClearTimeoutRef.current = null;
+                }
+                setHoveredId(die.id);
+              }}
+              onPointerOut={() => {
+                if (hoverClearTimeoutRef.current !== null) {
+                  clearTimeout(hoverClearTimeoutRef.current);
+                }
+                hoverClearTimeoutRef.current = window.setTimeout(() => {
                   setHoveredId((h) => (h === die.id ? null : h));
-                }}
-                onPointerDown={(e) => {
-                  beginDrag(e, die.id);
-                }}
-                onPointerMove={onDragMove}
-                onPointerUp={endDrag}
-                onClick={(e: THREE.Event) => {
-                  (
-                    e as unknown as { stopPropagation: () => void }
-                  ).stopPropagation();
-                  withClickGuard(() => {
-                    onAddFromLibrary?.(die.id);
-                  });
-                }}
-              >
-                <DieMesh
-                  sides={die.sides}
-                  color={die.colorHex}
-                  pattern={die.pattern}
-                  angle={angle}
-                  appearance={die.appearance}
-                />
-                <Html
-                  center
-                  zIndexRange={[10, 0]}
-                  style={{ pointerEvents: "none" }}
-                >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: "#d1d5db",
-                      textShadow: "0 1px 2px rgba(0,0,0,0.6)",
-                    }}
-                  >
-                    {die.name}
-                  </div>
-                </Html>
-              </group>
-            );
-          })}
+                  hoverClearTimeoutRef.current = null;
+                }, 250); // 250ms delay allows smooth transition to edit button
+              }}
+              onPointerDown={(e) => {
+                beginDrag(e, die.id);
+              }}
+              onPointerMove={onDragMove}
+              onPointerUp={endDrag}
+              onAddFromLibrary={onAddFromLibrary}
+              onEditLibraryDie={onEditLibraryDie}
+            />
+          ))}
     </>
   );
 }
@@ -433,6 +395,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   library,
   onAddFromLibrary,
   onRemoveSelected,
+  onEditLibraryDie,
   height = 420,
   maxHeight,
   rowPx = 120,
@@ -444,11 +407,10 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   // compute grid rows to size the canvas when using a scroll container
   const selectedCols = 5; // keep constant so Canvas height & camera stable
   const libraryCols = 5;
-  const rows =
-    mode === "selected"
-      ? Math.max(1, Math.ceil((selected.length || 1) / selectedCols))
-      : Math.max(1, Math.ceil((library.length || 1) / libraryCols));
-  const baseContentHeight = rows * rowPx; // target content height (no extra padding to avoid cumulative jumps)
+  const itemCount = mode === "selected" ? selected.length : library.length;
+  const cols = mode === "selected" ? selectedCols : libraryCols;
+  const rows = calculateGridRows(itemCount, cols);
+  const baseContentHeight = calculateContentHeight(rows, rowPx);
 
   // Smooth 1->2 row expansion (Option D): animate when transitioning from 1 to 2 rows only
   const prevRowsRef = React.useRef(rows);
@@ -507,14 +469,14 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   const activeAnim = animRef.current;
   if (activeAnim) {
     const now = performance.now();
-    const t = Math.min(1, (now - activeAnim.start) / activeAnim.duration);
-    const eased = 1 - Math.pow(1 - t, 3);
-    contentHeight = activeAnim.from + (activeAnim.to - activeAnim.from) * eased;
+    const progress = Math.min(
+      1,
+      (now - activeAnim.start) / activeAnim.duration
+    );
+    contentHeight = interpolateHeight(activeAnim.from, activeAnim.to, progress);
   }
   // Only grow container height up to content; allow scrolling only past maxHeight
-  const effectiveHeight = maxHeight
-    ? Math.min(contentHeight, maxHeight)
-    : contentHeight;
+  const effectiveHeight = calculateEffectiveHeight(contentHeight, maxHeight);
   const containerStyle: React.CSSProperties = maxHeight
     ? {
         width: "100%",
@@ -534,10 +496,10 @@ export const DiceStage: React.FC<DiceStageProps> = ({
     : { width: "100%" };
 
   // Derive orthographic zoom if not explicitly provided. This ties world cell size (2.4) to desired pixel row height.
-  const derivedZoom = cameraZoom ?? rowPx / 2.4; // pixels per world unit
+  const derivedZoom = cameraZoom ?? deriveCameraZoom(rowPx, 2.4);
 
   return (
-    <div style={containerStyle}>
+    <div style={{ position: "relative", ...containerStyle }}>
       <div style={innerStyle}>
         <Canvas
           orthographic
@@ -555,6 +517,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
             library={library}
             onAddFromLibrary={onAddFromLibrary}
             onRemoveSelected={onRemoveSelected}
+            onEditLibraryDie={onEditLibraryDie}
             rollPulse={rollPulse}
             rollPulseTargetId={rollPulseTargetId}
           />

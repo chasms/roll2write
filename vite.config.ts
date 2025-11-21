@@ -1,3 +1,5 @@
+/// <reference types="vitest/config" />
+
 import react from "@vitejs/plugin-react-swc";
 import autoprefixer from "autoprefixer";
 import { defineConfig } from "vite";
@@ -8,4 +10,9 @@ import sassDts from "vite-plugin-sass-dts";
 export default defineConfig({
   css: { postcss: { plugins: [autoprefixer] } },
   plugins: [react(), devtoolsJson(), sassDts()],
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.ts",
+  },
 });

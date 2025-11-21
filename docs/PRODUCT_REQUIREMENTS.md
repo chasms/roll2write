@@ -182,3 +182,143 @@ Song {
 ### Status
 
 - 2025-08-19: Initial draft added with v1 scope.
+
+## Bug Tracking & Fixes
+
+### Bug #001: Library Die Edit Button Hover State Instability
+
+**Status**: ✅ Fixed (2025-01-18)
+
+**Reported**: 2025-01-18
+
+**Description**:
+The edit button that appears when hovering over dice in the library exhibited unstable behavior:
+
+- Sometimes disappeared when the cursor was still over the die
+- Difficult to click because it disappeared when transitioning from die to button
+- Gap between 3D mesh and HTML button overlay caused hover state loss
+
+**Root Cause Analysis**:
+
+Multiple compounding issues were identified:
+
+1. **Spatial Gap Between 3D Mesh and Edit Button**:
+   - Edit button was positioned at `[0, 0.8, 0]` (0.8 units above die center)
+   - Physical gap existed between 3D mesh boundary and HTML button
+   - When moving from die to button, pointer crossed a "dead zone"
+   - During gap crossing, neither element detected the pointer
+
+2. **Pointer Events Configuration**:
+   - Parent `<Html>` wrapper had `pointerEvents: "none"`
+   - Child button had `pointerEvents: "auto"`
+   - This configuration caused event detection gaps in certain scenarios
+
+3. **Insufficient Hover Delay**:
+   - Original 150ms delay was borderline insufficient for smooth transitions
+   - Users moving cursor at normal speed could still experience flickering
+
+**Acceptance Criteria**:
+
+1. ✅ Edit button appears whenever cursor hovers over any part of the die's 3D mesh
+2. ✅ Edit button remains visible when cursor transitions from die mesh to button
+3. ✅ Edit button remains visible while cursor hovers over the button
+4. ✅ Edit button disappears only after cursor leaves both die mesh AND button area
+5. ✅ Edit button appears on correct die (never on wrong die)
+6. ✅ Hover state transitions are smooth with no flickering or jumping
+
+**Solution Implemented**:
+
+1. **Reduced Button Distance** ([LibraryDie.tsx:90](src/components/LibraryDie.tsx#L90)):
+   - Changed position from `[0, 0.8, 0]` to `[0, 0.6, 0]`
+   - Reduced spatial gap between die and button by 25%
+   - Minimizes "dead zone" during cursor transition
+
+2. **Added Wrapper Div with Padding** ([LibraryDie.tsx:95-108](src/components/LibraryDie.tsx#L95-L108)):
+   - Wrapped button in `<div>` with 8px padding
+   - Div has `pointerEvents: "auto"` and handles pointer enter/leave events
+   - Creates larger hover target area around button
+   - Catches pointer before it leaves the interactive region
+
+3. **Increased Hover Delay** ([DiceStage.tsx:378](src/components/DiceStage.tsx#L378), [DiceStage.tsx:404](src/components/DiceStage.tsx#L404)):
+   - Increased timeout from 150ms to 250ms
+   - Provides more cushion for cursor transitions
+   - Accommodates users with varying cursor speeds
+
+4. **Improved Event Handling Structure**:
+   - Moved pointer event handlers from button to wrapper div
+   - Wrapper intercepts events before button
+   - Eliminates race condition between button rendering and event detection
+
+**Testing & Verification**:
+
+- ✅ All quality checks pass (ESLint, Stylelint, TypeScript, Vitest)
+- ✅ Chrome DevTools debugging confirmed stable hover behavior
+- ✅ Visual inspection shows smooth transitions
+- ✅ No console errors or warnings
+- ✅ Existing tests continue to pass (61/61)
+
+**Result**:
+Edit button hover functionality is now stable and reliable:
+
+- Button remains visible during cursor transitions
+- No flickering or jumping between dice
+- Smooth, professional user experience
+- Solution addresses root causes, not just symptoms
+
+### Bug #002: Edit Button Click Opens Wrong Modal
+
+**Status**: 🟡 Fix Implemented - User Testing Required (2025-01-18)
+
+**Reported**: 2025-01-18
+
+**Description**:
+When clicking the edit button on a library die, the behavior is incorrect:
+
+- Expected: Edit modal should open for the clicked die
+- Actual: Die is added to the Selected Dice section instead
+
+**Root Cause Analysis**:
+The edit button and die were sharing the same `clickGuardRef`, which is used to prevent accidental clicks during drag operations. When the edit button was clicked:
+
+1. Edit button sets the shared click guard and calls `onEditLibraryDie`
+2. Die's click handler also checks the same guard
+3. Potential race condition or event bubbling causes die's `onAddFromLibrary` to fire
+
+Additionally, the edit button needed to fully isolate pointer events (onPointerUp was missing) to prevent any interference with the die's click detection.
+
+**Acceptance Criteria**:
+
+1. ⬜ Clicking edit button opens edit modal for the correct die
+2. ⬜ Clicking edit button does NOT add die to Selected Dice section
+3. ⬜ Edit button click is properly isolated from die click handler
+4. ⬜ Event propagation is stopped at button level
+
+**Solution Implemented**:
+
+1. **Separate Click Guard** ([LibraryDie.tsx:41](src/components/LibraryDie.tsx#L41)):
+   - Created `editButtonClickGuardRef` independent of die's `clickGuardRef`
+   - Edit button now uses its own guard to prevent double-clicks
+   - Eliminates interference between die and button click handling
+
+2. **Complete Event Isolation** ([LibraryDie.tsx:115-117](src/components/LibraryDie.tsx#L115-L117)):
+   - Added `onPointerUp` handler with `stopPropagation()`
+   - Now all pointer events are stopped: onPointerDown, onPointerUp, onPointerOver, onPointerOut, onClick
+   - Prevents any event bubbling to parent die group
+
+3. **Independent Hover State** ([LibraryDie.tsx:40](src/components/LibraryDie.tsx#L40)):
+   - Edit button maintains `isEditButtonHovered` state
+   - Only activates when cursor is over button bounding box
+   - No longer inherits die's hover state
+
+**Testing & Verification**:
+
+- ⬜ Verify clicking edit button opens edit modal
+- ⬜ Verify die is NOT added to selected section when clicking edit button
+- ⬜ Verify edit modal shows correct die data
+- ✅ Run quality checks (lintfix, stylelintfix, typecheck, test) - All passing (61/61 tests)
+
+**Related Code**:
+
+- [LibraryDie.tsx:98-161](src/components/LibraryDie.tsx#L98-L161) - Edit button group implementation
+- [DiceStage.tsx:443](src/components/DiceStage.tsx#L443) - `onEditLibraryDie` prop passing
+- [App.tsx:476-478](src/App.tsx#L476-L478) - Edit modal trigger handler
