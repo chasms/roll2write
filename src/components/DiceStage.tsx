@@ -4,8 +4,6 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import type { DieDefinition } from "../domain/types";
-import { LibraryDie } from "./LibraryDie";
-import { SelectedDie } from "./SelectedDie";
 import {
   applyDamping,
   calculateAngularVelocity,
@@ -21,6 +19,8 @@ import {
   interpolateHeight,
   shouldStopInertia,
 } from "./DiceStage.utils";
+import { LibraryDie } from "./LibraryDie";
+import { SelectedDie } from "./SelectedDie";
 
 export interface DiceStageProps {
   mode: "selected" | "library";
@@ -92,6 +92,18 @@ function StageScene({
 
   // Guard against duplicate onClick invocations from multiple child intersections
   const clickGuardRef = React.useRef(false);
+
+  // Ref to track delayed hover clear timeout (prevents edit button from disappearing during transition)
+  const hoverClearTimeoutRef = React.useRef<number | null>(null);
+
+  // Clean up hover clear timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (hoverClearTimeoutRef.current !== null) {
+        clearTimeout(hoverClearTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Drag-to-rotate state
   const draggingRef = React.useRef<{
@@ -348,10 +360,21 @@ function StageScene({
               clickGuardRef={clickGuardRef}
               groupRefs={groupRefs}
               onPointerOver={() => {
+                // Cancel any pending hover clear timeout
+                if (hoverClearTimeoutRef.current !== null) {
+                  clearTimeout(hoverClearTimeoutRef.current);
+                  hoverClearTimeoutRef.current = null;
+                }
                 setHoveredId(die.id);
               }}
               onPointerOut={() => {
-                setHoveredId((h) => (h === die.id ? null : h));
+                if (hoverClearTimeoutRef.current !== null) {
+                  clearTimeout(hoverClearTimeoutRef.current);
+                }
+                hoverClearTimeoutRef.current = window.setTimeout(() => {
+                  setHoveredId((h) => (h === die.id ? null : h));
+                  hoverClearTimeoutRef.current = null;
+                }, 250); // 250ms delay allows smooth transition to edit button
               }}
               onPointerDown={(e) => {
                 beginDrag(e, die.id);
@@ -476,7 +499,7 @@ export const DiceStage: React.FC<DiceStageProps> = ({
   const derivedZoom = cameraZoom ?? deriveCameraZoom(rowPx, 2.4);
 
   return (
-    <div style={containerStyle}>
+    <div style={{ position: "relative", ...containerStyle }}>
       <div style={innerStyle}>
         <Canvas
           orthographic
